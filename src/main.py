@@ -14,19 +14,23 @@ from chis_code import chis_code
 from dans_code import dans_code
 from jakes_code import jakes_code
 
-def main(data_filename):
+
+individual_code = {
+    "chi"  : chis_code,
+    "dan"  : dans_code,
+    "jake" : jakes_code
+}
+
+
+def main(data_filename, person):
     m_1, m_2, s, rho = np.loadtxt(data_filename, unpack=True)
+    q = gw.mass_ratio(m_1,m_2)
     eta = gw.symmetric_mass_ratio(m_1, m_2)
     M_c = gw.chirp_mass(m_1, m_2)
 
-    print(np.min(eta), np.max(eta), np.mean(eta))
-    print(np.min(M_c), np.max(M_c), np.mean(M_c))
+    individual_code[person.lower()](m_1, m_2, s, rho, q, eta, M_c)
 
-    q = gw.mass_ratio(m_1,m_2)
-    chis_code(m_1,m_2,s,rho,q,eta,M_c)
-    dans_code(m_1,m_2,s,rho,q,eta,M_c)
-    jakes_code(m_1,m_2,s,rho,q,eta,M_c)
-    
+
 
 if __name__ == "__main__":
     main(*argv[1:])
