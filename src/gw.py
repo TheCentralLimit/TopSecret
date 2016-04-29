@@ -1,6 +1,10 @@
 from __future__ import division
 import numpy as np
 
+
+def mass_ratio(m_1, m_2):
+    pass
+
 def symmetric_mass_ratio(m_1, m_2):
     M = m_1 + m_2
 

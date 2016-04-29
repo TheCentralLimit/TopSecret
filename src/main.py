@@ -6,17 +6,19 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import scipy
 
+from sys import argv
 
-@pickle_results("x-squared.pkl")
-def square(x):
-    return x*x
+import gw
 
 
-def main():
-    x = np.arange(10)
+def main(data_filename):
+    m_1, m_2, s, rho = np.loadtxt(data_filename, unpack=True)
+    eta = gw.symmetric_mass_ratio(m_1, m_2)
+    M_c = gw.chirp_mass(m_1, m_2)
 
-    print(square(x))
+    print(np.min(eta), np.max(eta), np.mean(eta))
+    print(np.min(M_c), np.max(M_c), np.mean(M_c))
 
 
 if __name__ == "__main__":
-    main()
+    main(*argv[1:])
