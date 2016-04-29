@@ -28,8 +28,8 @@ def main(data_filename, person):
     eta = gw.symmetric_mass_ratio(m_1, m_2)
     M_c = gw.chirp_mass(m_1, m_2)
     D = gw.detectable_distance(M_c)
- 
-    individual_code[person.lower()](m_1, m_2, s, rho, q, eta, M_c)
+    V = (4.0*np.pi/3)*D**(3)
+    individual_code[person.lower()](m_1, m_2, s, rho, q, eta, M_c, V)
 
 
 
