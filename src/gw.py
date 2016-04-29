@@ -40,3 +40,12 @@ def chirp_mass(m_1, m_2):
     eta = symmetric_mass_ratio(m_1, m_2)
 
     return eta**(3/5) * M
+
+def  detectable_distance(chirp_mass):
+    """
+    Returns the distance within which we can detect a system of a certain chirp mass
+    unit [Mpc]
+    """
+    D = 200*(chirp_mass/1.2)**(5./6)
+    
+    return D
