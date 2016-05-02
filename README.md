@@ -1,16 +1,21 @@
 # TopSecret
+
 It's classified...
+
 
 # How to run the code
 
 1. Go to `/TopSecret/src`
 
-2. Type:
+2. Run:
+
 ```bash
-$ python2 main.py [data_file] [yourname]
+$ python2 main.py [data file] [output directory] [your name]
 ```
-where `[data_file]` is the path to the data file, and `[yourname]` is either `dan`, `chi`, or `jake` (you know who you are).
+
+where `[data file]` is the path to the data file, `[output directory]` is the directory you would like to output results to, and `[your name]` is either `dan`, `chi`, or `jake` (you know who you are).
 
 
 # Credit
+
 Copyright 2016 © Jacob Lange, Chi Nguyen, Daniel Wysocki

@@ -1,13 +1,19 @@
+"""
+Code written by Daniel Wysocki.
+"""
+
 from __future__ import division, print_function
 
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-
 from statsmodels.nonparametric.kde import KDEUnivariate
 
+from os import path
 
-def chirp_mass_distribution(M_c, V, T, bandwidth="scott", n_smooth=1000):
+
+def chirp_mass_distribution(M_c, V, T, output_directory,
+                            bandwidth="scott", n_smooth=1000):
     # Transform M_c into log-space.
     x = np.log10(M_c)
     # Compute the weights for each M_c.
@@ -60,7 +66,7 @@ def chirp_mass_distribution(M_c, V, T, bandwidth="scott", n_smooth=1000):
 
     # Set axis labels.
     ax_data.set_xlabel(r"$x$")
-    ax_pdf.set_ylabel(r"$\hat{r}$")
+    ax_pdf.set_ylabel(r"$r(x)$")
     ax_cdf.set_ylabel(r"CDF")
 
     # Hide unwanted axis ticks and tick labels.
@@ -68,8 +74,8 @@ def chirp_mass_distribution(M_c, V, T, bandwidth="scott", n_smooth=1000):
     plt.setp(ax_cdf.xaxis.get_ticklabels(), visible=False)
     ax_data.yaxis.set_ticks([])
 
-    plt.show()
+    fig.savefig(path.join(output_directory, "chirp-mass-distribution.pdf"))
 
 
-def dans_code(m_1 , m_2, s, rho, q, eta, M_c, V):
-    chirp_mass_distribution(M_c, V, 1)
+def dans_code(m_1, m_2, s, rho, q, eta, M_c, V, output_directory):
+    chirp_mass_distribution(M_c, V, 1, output_directory)

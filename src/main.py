@@ -6,9 +6,11 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import scipy
 
+from os import path
 from sys import argv
 
 import gw
+from utils import make_sure_path_exists
 
 from chis_code import chis_code
 from dans_code import dans_code
@@ -22,14 +24,34 @@ individual_code = {
 }
 
 
-def main(data_filename, person):
+def individual_fn(name, output_directory):
+    # Ignore case in name.
+    name = name.lower()
+    # Make sure name is valid.
+    assert individual_code.get(name) is not None, "Invalid name: " + name
+    # Output to sub-directory [output_directory]/[name]
+    output_directory = path.join(output_directory, name)
+    # Create output directory if it does not exist.
+    make_sure_path_exists(output_directory)
+
+    return lambda *args: individual_code[name](*(args + (output_directory,)))
+
+
+def main(data_filename, output_directory, name):
+    # Set random seed.
+    np.random.seed(1)
+    # Create output directory if it does not exist.
+    make_sure_path_exists(output_directory)
+    # Load data from file.
     m_1, m_2, s, rho = np.loadtxt(data_filename, unpack=True)
+    # Compute standard quantitites.
     q = gw.mass_ratio(m_1,m_2)
     eta = gw.symmetric_mass_ratio(m_1, m_2)
     M_c = gw.chirp_mass(m_1, m_2)
     D = gw.detectable_distance(M_c)
-    V = (4.0*np.pi/3)*D**(3)
-    individual_code[person.lower()](m_1, m_2, s, rho, q, eta, M_c, V)
+    V = (4/3) * np.pi * D**3
+    # Run the code written by an individual person.
+    individual_fn(name, output_directory)(m_1, m_2, s, rho, q, eta, M_c, V)
 
 
 
