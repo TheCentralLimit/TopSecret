@@ -5,11 +5,62 @@ Code written by Daniel Wysocki.
 from __future__ import division, print_function
 
 import numpy as np
+from numpy.polynomial import polynomial as P
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from statsmodels.nonparametric.kde import KDEUnivariate
 
 from os import path
+
+
+def smoothing_poly_lnprior(poly, degree, xmin, xmax, gamma=1):
+    """
+    A smoothing prior that suppresses higher order derivatives of a polynomial,
+    poly = a + b x + c x*x + ..., described by a vector of its coefficients,
+    [a, b, c, ...].
+
+    Functional form is:
+
+    ln p(poly coeffs) =
+      -gamma * integrate( (diff(poly(x), x, degree))^2, x, xmin, xmax)
+
+    So it takes the `degree`th derivative of the polynomial, squares it,
+    integrates that from xmin to xmax, and scales by -gamma.
+    """
+    # Take the `degree`th derivative of the polynomial.
+    poly_diff = P.polyder(poly, m=degree)
+    # Square the polynomial.
+    poly_diff_sq = P.polypow(poly_diff, 2)
+    # Take the indefinite integral of the polynomial.
+    poly_int_indef = P.polyint(poly_diff_sq)
+    # Evaluate the integral at xmin and xmax to get the definite integral.
+    poly_int_def = (
+        P.polyval(xmax, poly_int_indef) - P.polyval(xmin, poly_int_indef)
+    )
+    # Scale by -gamma to get the log prior
+    lnp = -gamma * poly_int_def
+
+    return lnp
+
+
+def smoothing_poly_lnprior_example():
+    """
+    Example usage of polynomial smoothing prior.
+    """
+    # Polynomial is 0 + 1x + ... + 4x^4.
+    p = np.arange(5)
+    # Smooth derivatives of 3rd degree and higher.
+    smoothing_degree = 3
+    # Integrate from 0 to 2.
+    xmin, xmax = 0, 2
+    # Do not scale result.
+    gamma = 1
+
+    # Run the function and display the result.
+    lnp = smoothing_poly_lnprior(p, smoothing_degree, xmin, xmax, gamma)
+    print("Smoothing prior example")
+    print("lnp =", lnp)
+
 
 
 def chirp_mass_distribution(M_c, V, T, output_directory,
@@ -78,4 +129,6 @@ def chirp_mass_distribution(M_c, V, T, output_directory,
 
 
 def dans_code(m_1, m_2, s, rho, q, eta, M_c, V, output_directory):
+    smoothing_poly_lnprior_example()
+
     chirp_mass_distribution(M_c, V, 1, output_directory)
