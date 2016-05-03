@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Code written by Chi Nguyen.
 """
