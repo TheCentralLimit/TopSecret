@@ -33,14 +33,16 @@ def jakes_code(m_1, m_2, s, rho, q, eta, M_c, V, output_directory):
 
     fig.savefig(path.join(output_directory, "chirp-mass-classes.pdf"))
 
-    train = M_c[:len(M_c)/2]
-    print(train)
-    print(M_c[2499])
-    train = train.reshape(-1, 1)
-    index_pos_half = index_pos[:len(s)/2]
-    clf = LinearSVC(C=10, class_weight='balanced')
+    train = M_c[:len(M_c)//2]
+    train = train.reshape((-1, 1))
+    index_pos_half = index_pos[:len(s)//2]
+    clf = LinearSVC(C=1000, class_weight='balanced')
     clf.fit(train, index_pos_half)
     s_pred_half = clf.predict(train)
+    
+    M_c = M_c.reshape((-1,1))
+
+    print(*map(np.shape, [s_pred_half,index_pos_half]))
 
     completeness, contamination = completeness_contamination(s_pred_half,
                                                              index_pos_half)
@@ -51,4 +53,6 @@ def jakes_code(m_1, m_2, s, rho, q, eta, M_c, V, output_directory):
     s_pred = clf.predict(M_c)
 
     completeness, contamination = completeness_contamination(s_pred,
-                                                             index_pos_half)
+                                                             index_pos)
+    print("completeness for the data:", completeness)
+    print("contamination for the data:" , contamination)
