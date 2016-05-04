@@ -40,10 +40,15 @@ def jakes_code(m_1, m_2, s, rho, q, eta, M_c, V, output_directory):
     index_pos_half = index_pos[:len(s)/2]
     clf = LinearSVC(C=10, class_weight='balanced')
     clf.fit(train, index_pos_half)
-    s_pred = clf.predict(train)
+    s_pred_half = clf.predict(train)
+
+    completeness, contamination = completeness_contamination(s_pred_half,
+                                                             index_pos_half)
+
+    print("completeness for half the data:", completeness)
+    print("contamination for half the data:" , contamination)
+
+    s_pred = clf.predict(M_c)
 
     completeness, contamination = completeness_contamination(s_pred,
                                                              index_pos_half)
-
-    print("completeness:", completeness)
-    print("contamination:" , contamination)
