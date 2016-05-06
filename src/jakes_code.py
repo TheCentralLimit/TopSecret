@@ -7,6 +7,7 @@ from __future__ import division, print_function
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.svm import LinearSVC
+from sklearn import grid_search
 from astroML.utils import completeness_contamination
 
 from os import path
@@ -42,7 +43,7 @@ def jakes_code(m_1, m_2, s, rho, q, eta, M_c, V, output_directory):
     
     M_c = M_c.reshape((-1,1))
 
-    print(*map(np.shape, [s_pred_half,index_pos_half]))
+#    print(*map(np.shape, [s_pred_half,index_pos_half]))
 
     completeness, contamination = completeness_contamination(s_pred_half,
                                                              index_pos_half)
@@ -56,3 +57,15 @@ def jakes_code(m_1, m_2, s, rho, q, eta, M_c, V, output_directory):
                                                              index_pos)
     print("completeness for the data:", completeness)
     print("contamination for the data:" , contamination)
+    
+    parameters = {'C':[1,1000]}
+    svr = LinearSVC(class_weight='balanced')
+    clf = grid_search.GridSearchCV(svr, parameters)
+    clf.fit(train, index_pos_half)
+    s_pred_half2 = clf.predict(train)
+    
+    completeness, contamination = completeness_contamination(s_pred_half2,
+                                                            index_pos_half)
+
+    print("completeness for the data using CV:", completeness)
+    print("contamination for the data using CV:" , contamination)
