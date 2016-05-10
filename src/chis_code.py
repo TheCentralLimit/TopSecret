@@ -25,6 +25,16 @@ def chis_code(m_1, m_2, s, rho, q, eta, M_c, V, output_directory):
     fit = fitting_MCMC(M_c,V,1)
     return (M_c,V,1)
 
+# Define a polynomial
+def poly_model(x, degree):
+    Y = np.array([1]*len(x))
+    
+    for i in range(1,degree):
+        Y = np.append(Y,x**i)
+    
+    Y = Y.reshape(degree,len(x))
+    return Y
+    
 # Define the probability function as likelihood * prior.
 def lnprior(theta):
     """
@@ -63,9 +73,9 @@ def fitting_MCMC(M_c,V,T):
     x = np.log(M_c)
     y = ds.formation_rate_estimator(M_c,V,T,bandwidth="scott")
     y = np.log(y)
-    yerr = 0.005*np.random.rand(N)
+    yerr = 0.05*np.random.rand(N)
     y += yerr
-    lnf = 0.005
+    lnf = 0.05
 
     # Plot the dataset and the true model.
     fig,ax = pl.subplots()
@@ -75,18 +85,24 @@ def fitting_MCMC(M_c,V,T):
     #pl.savefig("line-data.pdf")
 
     # Do the least-squares fit and compute the uncertainties.
-    A = np.vstack((np.ones_like(x), x)).T
+    model = poly_model(x,6)
+    A = model.T
+    print(A)
     C = np.diag(yerr * yerr)
     cov = np.linalg.inv(np.dot(A.T, np.linalg.solve(C, A)))
-    b_ls, m_ls = np.dot(cov, np.dot(A.T, np.linalg.solve(C, y)))
+    lam0_ls, lam1_ls, lam2_ls, lam3_ls, lam4_ls, lam5_ls = np.dot(cov, np.dot(A.T, np.linalg.solve(C, y)))
     print("""Least-squares results:
-        m = {0} ± {1}
-        b = {2} ± {3}
-    """.format(m_ls, np.sqrt(cov[1, 1]), b_ls, np.sqrt(cov[0, 0])))
+        lam0 = {0} ± {1}
+        lam1 = {2} ± {3}
+        lam2 = {4} ± {5}
+        lam3 = {6} ± {7}
+    """.format(lam0_ls, np.sqrt(cov[0, 0]), lam1_ls, np.sqrt(cov[1, 1]), 
+               lam2_ls, np.sqrt(cov[2, 2]), lam3_ls, np.sqrt(cov[3, 3]),
+               lam4_ls, np.sqrt(cov[4, 4]), lam5_ls, np.sqrt(cov[5, 5])))
 
     # Plot the least-squares result.
-    xl = np.array([0, 10])
-    ax.plot(xl, m_ls*xl+b_ls, "-r")
+    xl = np.linspace(-1, 5,1000)
+    ax.plot(xl,lam0_ls + lam1_ls*xl + lam2_ls*xl*xl + lam3_ls*xl**3 + lam4_ls*xl**4 + lam5_ls*xl**5, "-r")
     #pl.savefig("line-least-squares.pdf")
     pl.show()
 
