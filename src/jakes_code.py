@@ -19,8 +19,15 @@ def jakes_code(m_1, m_2, s, rho, q, eta, M_c, V, output_directory):
     index_neg = (s==0)
     M_c_em = M_c[index_pos]
     M_c_not_em = M_c[index_neg]
+    Mcem_max = max(M_c_em)
+    Mcnotem_min = min(M_c_not_em)
+    print(Mcem_max)
+    print(Mcnotem_min)
 
-
+    dist = abs(Mcem_max - Mcnotem_min)/2.
+    print(dist)
+    line = Mcem_max + dist
+    print(line)
     fig, ax = plt.subplots(figsize=(10,10))
 
     ax.scatter(M_c_em, np.random.uniform(0, 1, len(M_c_em)),
@@ -31,7 +38,13 @@ def jakes_code(m_1, m_2, s, rho, q, eta, M_c, V, output_directory):
     ax.set_xlabel('$\mathcal{M}_{c}$')
 
     ax.yaxis.set_ticklabels([])
-
+    y = np.random.uniform( 0, 1, len(M_c_em))
+    print(y)
+    print(line)
+    line_array = np.empty(len(M_c_em))
+    line_array.fill(line)
+    print(line_array)
+    ax.plot(line_array,y,'-')
     fig.savefig(path.join(output_directory, "chirp-mass-classes.pdf"))
 
     train = M_c[:len(M_c)//2]
