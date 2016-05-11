@@ -9,6 +9,8 @@ from numpy.polynomial import polynomial as P
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from statsmodels.nonparametric.kde import KDEUnivariate
+from statsmodels.regression.linear_model import WLS
+
 
 from os import path
 
@@ -63,30 +65,84 @@ def smoothing_poly_lnprior_example():
 
 
 
-def chirp_mass_distribution(M_c, V, T, output_directory,
+def train_kde(x, w, bandwidth):
+    # Fit a weighted KDE to the log-space M_c.
+    kde = KDEUnivariate(x)
+    kde.fit(weights=w, fft=False, bw=bandwidth)
+
+    return kde
+
+
+def chirp_mass_distribution(M_c, M_c_err, V, T, S, output_directory,
                             bandwidth="scott", n_smooth=1000):
     # Transform M_c into log-space.
     x = np.log10(M_c)
     # Compute the weights for each M_c.
     w = 1 / (V*T)
 
-    # Fit a weighted KDE to the log-space M_c.
-    kde = KDEUnivariate(x)
-    kde.fit(weights=w, fft=False, bw=bandwidth)
-
-    # Evaluate the KDE at the observed log(M_c) values.
-    r = kde.evaluate(x)
-
     # Generate `n_smooth` evenly-spaced values of log(M_c) for visualization
     # purposes.
     x_smooth = np.linspace(np.min(x), np.max(x), num=n_smooth)
-    # Evaluate the KDE at the evenly-spaced values of log(M_c).
-    r_smooth = kde.evaluate(x_smooth)
+
+    # Initialize first and second moments of the rate, `r`, both at the observed
+    # points `x`, and the smoothed values `x_smooth` for plotting.
+    # Their values will be accumulated during the MC approximation.
+    r = np.zeros_like(x)
+    r_smooth = np.zeros_like(x_smooth)
+    r_2 = np.zeros_like(x)
+    r_smooth_2 = np.zeros_like(x_smooth)
+
+    # Perform Monte Carlo error approximation.
+    for i in range(S):
+        # Perturb the data.
+        x_i = np.log10(np.random.normal(M_c, M_c_err))
+
+        # Train a KDE on the perturbed data.
+        kde = train_kde(x_i, w, bandwidth)
+
+        # Evaluate the KDE at both the observed `x` and the smoothed values for
+        # plotting.
+        r_i = kde.evaluate(x)
+        r_smooth_i = kde.evaluate(x_smooth)
+
+        # Update the first and second moments, both at the observed and smoothed
+        # points.
+        r += r_i / S
+        r_smooth += r_smooth_i / S
+
+        r_2 += r_i**2 / S
+        r_smooth_2 += r_smooth_i**2 / S
+
+
+    # Compute standard errors from sample variances.
+    r_err = np.sqrt((r_2 - r**2) / S)
+    r_smooth_err = np.sqrt((r_smooth_2 - r_smooth**2) / S)
 
     # Fit a power-law to the KDE, which is a linear fit in log-space.
-    design_matrix = np.column_stack((np.ones_like(x), x))
-    intercept, slope = np.linalg.lstsq(design_matrix, np.log10(r))[0]
+    F = np.column_stack((np.ones_like(x), x))
+    F_smooth = np.column_stack((np.ones_like(x_smooth), x_smooth))
+
+    ols_model = WLS(r, F, r_err)
+    ols_results = ols_model.fit()
+
+#    intercept, slope = np.linalg.lstsq(F, np.log10(r))[0]
+    intercept, slope = ols_results.params
+
+    # Compute fitted rate.
     r_fit = 10**(slope*x_smooth + intercept)
+
+    # Compute uncertainty in fitted rate.
+    cov_lambda = ols_results.cov_HC0
+    cov_r = np.diag(r_smooth_err**2)
+    joint_cov_lambda_r = np.linalg.inv(
+        np.linalg.inv(cov_lambda)
+      + np.dot(F_smooth.T, np.linalg.solve(cov_r, F_smooth))
+    )
+
+    r_fit_err = np.sqrt(
+        np.diagonal(reduce(np.dot, [F_smooth, joint_cov_lambda_r, F_smooth.T]))
+    )
+
 
     ##############
     ## Plotting ##
@@ -102,9 +158,14 @@ def chirp_mass_distribution(M_c, V, T, output_directory,
     ax_cdf  = fig.add_subplot(gs[1], sharex=ax_pdf)
     ax_data = fig.add_subplot(gs[2], sharex=ax_pdf)
 
-    # Plot the KDE rate, as well as the power-law fit to that KDE.
-    ax_pdf.plot(x_smooth, r_smooth)
+    # Plot the KDE rate
+    ax_pdf.plot(x_smooth, r_smooth, "b-")
+    ax_pdf.fill_between(x_smooth, r_smooth-r_smooth_err, r_smooth+r_smooth_err,
+                        color="b", alpha=0.1, edgecolor="b")
+    #Plot the power-law fit to that KDE.
     ax_pdf.plot(x_smooth, r_fit, "r--")
+    ax_pdf.fill_between(x_smooth, r_fit-r_fit_err, r_fit+r_fit_err,
+                        color="r", alpha=0.1, edgecolor="r")
     # Plot the CDF of the KDE.
     ax_cdf.plot(np.sort(x), kde.cdf)
     # Plot the original data points, with random y-values for visualization
@@ -130,8 +191,6 @@ def chirp_mass_distribution(M_c, V, T, output_directory,
 
 def dans_code(m_1, m_2, s, rho, q, q_err, eta, M_c, M_c_err, V,
               output_directory):
-    print(np.column_stack((M_c, M_c_err, q, q_err)))
+#    smoothing_poly_lnprior_example()
 
-    smoothing_poly_lnprior_example()
-
-    chirp_mass_distribution(M_c, V, 1, output_directory)
+    chirp_mass_distribution(M_c, M_c_err, V, 1, 5, output_directory)
