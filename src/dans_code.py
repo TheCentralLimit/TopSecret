@@ -91,6 +91,8 @@ def chirp_mass_distribution(M_c, x_err, V, T, S, output_directory,
     r_smooth = np.zeros_like(x_smooth)
     r_2 = np.zeros_like(x)
     r_smooth_2 = np.zeros_like(x_smooth)
+    log_r = np.zeros_like(x)
+    log_r2 = np.zeros_like(x)
 
     # Perform Monte Carlo error approximation.
     for i in range(S):
@@ -104,25 +106,29 @@ def chirp_mass_distribution(M_c, x_err, V, T, S, output_directory,
         # plotting.
         r_i = kde.evaluate(x)
         r_smooth_i = kde.evaluate(x_smooth)
+        log_r_i = np.log10(r_i)
 
         # Update the first and second moments, both at the observed and smoothed
         # points.
         r += r_i / S
         r_smooth += r_smooth_i / S
+        log_r += log_r_i / S
 
         r_2 += r_i**2 / S
         r_smooth_2 += r_smooth_i**2 / S
+        log_r2 += log_r_i**2 / S
 
 
     # Compute standard errors from sample variances.
     r_err = np.sqrt((r_2 - r**2) / S)
     r_smooth_err = np.sqrt((r_smooth_2 - r_smooth**2) / S)
+    log_r_err = np.sqrt((log_r2 - log_r**2) / S)
 
     # Fit a power-law to the KDE, which is a linear fit in log-space.
     F = np.column_stack((np.ones_like(x), x))
     F_smooth = np.column_stack((np.ones_like(x_smooth), x_smooth))
 
-    ols_model = WLS(r, F, 1/r_err**2)
+    ols_model = WLS(log_r, F, 1/log_r_err)
     ols_results = ols_model.fit()
 
 #    intercept, slope = np.linalg.lstsq(F, np.log10(r))[0]
