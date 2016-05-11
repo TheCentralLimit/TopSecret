@@ -47,14 +47,14 @@ def main(data_filename, output_directory, name):
     # Compute standard quantitites.
     eta = gw.symmetric_mass_ratio(m_1, m_2)
     M_c = gw.chirp_mass(m_1, m_2)
-    M_c_err = gw.chirp_mass_error(M_c, rho)
+    x_err = gw.chirp_mass_log_error(M_c, rho)
     q = gw.mass_ratio(m_1, m_2)
     q_err = gw.mass_ratio_error(M_c, rho)
     D = gw.detectable_distance(M_c)
     V = (4/3) * np.pi * D**3
     # Run the code written by an individual person.
     fn = individual_fn(name, output_directory)
-    fn(m_1, m_2, s, rho, q, q_err, eta, M_c, M_c_err, V)
+    fn(m_1, m_2, s, rho, q, q_err, eta, M_c, x_err, V)
 
 
 

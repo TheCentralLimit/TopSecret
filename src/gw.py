@@ -52,7 +52,7 @@ def chirp_mass(m_1, m_2):
     return eta**(3/5) * M
 
 
-def chirp_mass_error(chirp_mass, SNR):
+def chirp_mass_log_error(chirp_mass, SNR):
     """
     Returns the 1-sigma uncertainty in the chirp mass.
     """

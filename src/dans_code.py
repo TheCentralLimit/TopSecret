@@ -73,7 +73,7 @@ def train_kde(x, w, bandwidth):
     return kde
 
 
-def chirp_mass_distribution(M_c, M_c_err, V, T, S, output_directory,
+def chirp_mass_distribution(M_c, x_err, V, T, S, output_directory,
                             bandwidth="scott", n_smooth=1000):
     # Transform M_c into log-space.
     x = np.log10(M_c)
@@ -95,7 +95,7 @@ def chirp_mass_distribution(M_c, M_c_err, V, T, S, output_directory,
     # Perform Monte Carlo error approximation.
     for i in range(S):
         # Perturb the data.
-        x_i = np.log10(np.random.normal(M_c, M_c_err))
+        x_i = np.random.normal(x, x_err)
 
         # Train a KDE on the perturbed data.
         kde = train_kde(x_i, w, bandwidth)
@@ -122,7 +122,7 @@ def chirp_mass_distribution(M_c, M_c_err, V, T, S, output_directory,
     F = np.column_stack((np.ones_like(x), x))
     F_smooth = np.column_stack((np.ones_like(x_smooth), x_smooth))
 
-    ols_model = WLS(r, F, r_err)
+    ols_model = WLS(r, F, 1/r_err**2)
     ols_results = ols_model.fit()
 
 #    intercept, slope = np.linalg.lstsq(F, np.log10(r))[0]
@@ -189,8 +189,8 @@ def chirp_mass_distribution(M_c, M_c_err, V, T, S, output_directory,
     fig.savefig(path.join(output_directory, "chirp-mass-distribution.pdf"))
 
 
-def dans_code(m_1, m_2, s, rho, q, q_err, eta, M_c, M_c_err, V,
+def dans_code(m_1, m_2, s, rho, q, q_err, eta, M_c, x_err, V,
               output_directory):
 #    smoothing_poly_lnprior_example()
 
-    chirp_mass_distribution(M_c, M_c_err, V, 1, 5, output_directory)
+    chirp_mass_distribution(M_c, x_err, V, 1, 5, output_directory)
