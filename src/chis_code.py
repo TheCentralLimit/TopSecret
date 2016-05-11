@@ -16,26 +16,52 @@ from matplotlib.ticker import MaxNLocator
 
 # group modulus
 import density as ds
-import dans_code as dan
 
 # Reproducible results!
 np.random.seed(123)
 
-def chis_code(m_1, m_2, s, rho, q, eta, M_c, V, output_directory):
-    fit = fitting_MCMC(M_c,V,1)
+def chis_code(m_1, m_2, s, rho, q, q_err, eta, M_c, M_c_err, V,
+              output_directory):
+    fit = fitting_MCMC(M_c,M_c_err,V,1)
     return (M_c,V,1)
 
 # Define a polynomial
 def poly_model(x, degree):
-    Y = np.array([1]*len(x))
+    Y = np.column_stack(x**i for i in range(degree+1))
     
-    for i in range(1,degree):
-        Y = np.append(Y,x**i)
-    
-    Y = Y.reshape(degree,len(x))
     return Y
     
 # Define the probability function as likelihood * prior.
+
+def smoothing_poly_lnprior(poly, degree, xmin, xmax, gamma=1):
+    """
+    A smoothing prior that suppresses higher order derivatives of a polynomial,
+    poly = a + b x + c x*x + ..., described by a vector of its coefficients,
+    [a, b, c, ...].
+
+    Functional form is:
+
+    ln p(poly coeffs) =
+      -gamma * integrate( (diff(poly(x), x, degree))^2, x, xmin, xmax)
+
+    So it takes the `degree`th derivative of the polynomial, squares it,
+    integrates that from xmin to xmax, and scales by -gamma.
+    """
+    # Take the `degree`th derivative of the polynomial.
+    poly_diff = P.polyder(poly, m=degree)
+    # Square the polynomial.
+    poly_diff_sq = P.polypow(poly_diff, 2)
+    # Take the indefinite integral of the polynomial.
+    poly_int_indef = P.polyint(poly_diff_sq)
+    # Evaluate the integral at xmin and xmax to get the definite integral.
+    poly_int_def = (
+        P.polyval(xmax, poly_int_indef) - P.polyval(xmin, poly_int_indef)
+    )
+    # Scale by -gamma to get the log prior
+    lnp = -gamma * poly_int_def
+
+    return lnp
+
 def lnprior(theta):
     """
     Example usage of polynomial smoothing prior.
@@ -50,7 +76,7 @@ def lnprior(theta):
     gamma = 1
 
     # Run the function and display the result.
-    lnp = dan.smoothing_poly_lnprior(p, smoothing_degree, xmin, xmax, gamma)
+    lnp = smoothing_poly_lnprior(p, smoothing_degree, xmin, xmax, gamma)
 
     return lnp
 
@@ -67,43 +93,35 @@ def lnprob(theta, x, y, yerr):
     return lp + lnlike(theta, x, y, yerr)
 
 
-def fitting_MCMC(M_c,V,T):
+def fitting_MCMC(M_c,M_c_err,V,T):
     # Transform M_c into log-space.
     N = len(M_c)
-    x = np.log(M_c)
+    x = np.log10(M_c)
     y = ds.formation_rate_estimator(M_c,V,T,bandwidth="scott")
-    y = np.log(y)
-    yerr = 0.05*np.random.rand(N)
-    y += yerr
+    y = np.log10(y)
+    yerr = np.log10(M_c_err)
     lnf = 0.05
-
+    degree = 5
     # Plot the dataset and the true model.
     fig,ax = pl.subplots()
     ax.errorbar(x, y, yerr=yerr, fmt=".k")
-    #ax.scatter(x, y, "k", lw=3, alpha=0.6)
-    #pl.show()
-    #pl.savefig("line-data.pdf")
 
     # Do the least-squares fit and compute the uncertainties.
-    model = poly_model(x,6)
-    A = model.T
-    print(A)
+    A = poly_model(x, degree)
     C = np.diag(yerr * yerr)
     cov = np.linalg.inv(np.dot(A.T, np.linalg.solve(C, A)))
-    lam0_ls, lam1_ls, lam2_ls, lam3_ls, lam4_ls, lam5_ls = np.dot(cov, np.dot(A.T, np.linalg.solve(C, y)))
-    print("""Least-squares results:
-        lam0 = {0} ± {1}
-        lam1 = {2} ± {3}
-        lam2 = {4} ± {5}
-        lam3 = {6} ± {7}
-    """.format(lam0_ls, np.sqrt(cov[0, 0]), lam1_ls, np.sqrt(cov[1, 1]), 
-               lam2_ls, np.sqrt(cov[2, 2]), lam3_ls, np.sqrt(cov[3, 3]),
-               lam4_ls, np.sqrt(cov[4, 4]), lam5_ls, np.sqrt(cov[5, 5])))
+    lam = np.array([0]*degree)
+    lam = np.dot(cov, np.dot(A.T, np.linalg.solve(C, y)))
+    print('Fit coefficients:\n',lam)
+    print('Fit uncertainty:\n',np.diag(cov))
 
     # Plot the least-squares result.
-    xl = np.linspace(-1, 5,1000)
-    ax.plot(xl,lam0_ls + lam1_ls*xl + lam2_ls*xl*xl + lam3_ls*xl**3 + lam4_ls*xl**4 + lam5_ls*xl**5, "-r")
-    #pl.savefig("line-least-squares.pdf")
+    xl = np.linspace(-0.1, 2,1000)
+    lam_to_plot = list(reversed(lam)) # reverse the order of the coefficient, 
+                                      # so that lam_to_plot[0] = the coefficient of the highest power
+    ax.plot(xl,np.polyval(lam_to_plot,xl), "-r")
+    ax.set_ylim(-4,1.5)
+    pl.savefig("line-least-squares.pdf")
     pl.show()
 
     # Find the maximum likelihood value.
