@@ -128,7 +128,10 @@ def chirp_mass_distribution(M_c, V, T, output_directory,
     fig.savefig(path.join(output_directory, "chirp-mass-distribution.pdf"))
 
 
-def dans_code(m_1, m_2, s, rho, q, eta, M_c, V, output_directory):
+def dans_code(m_1, m_2, s, rho, q, q_err, eta, M_c, M_c_err, V,
+              output_directory):
+    print(np.column_stack((M_c, M_c_err, q, q_err)))
+
     smoothing_poly_lnprior_example()
 
     chirp_mass_distribution(M_c, V, 1, output_directory)

@@ -22,6 +22,16 @@ def mass_ratio(m_1, m_2):
     return q
 
 
+def mass_ratio_error(chirp_mass, SNR):
+    """
+    Returns the 1-sigma uncertainty in the mass ratio.
+
+    If this value is close to 1.0, assume instead that the mass ratio is
+    uniformly distributed between 0.1 and 1.0.
+    """
+    return np.maximum(chirp_mass + 2, 12) / SNR
+
+
 def symmetric_mass_ratio(m_1, m_2):
     """
     Returns the symmetric mass ratio, eta.
@@ -41,7 +51,16 @@ def chirp_mass(m_1, m_2):
 
     return eta**(3/5) * M
 
-def  detectable_distance(chirp_mass):
+
+def chirp_mass_error(chirp_mass, SNR):
+    """
+    Returns the 1-sigma uncertainty in the chirp mass.
+    """
+    return 0.4 * (chirp_mass/30)**(10/3) / SNR
+
+
+
+def detectable_distance(chirp_mass):
     """
     Returns the distance within which we can detect a system of a certain chirp
     mass unit [Mpc].

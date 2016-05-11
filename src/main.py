@@ -45,13 +45,16 @@ def main(data_filename, output_directory, name):
     # Load data from file.
     m_1, m_2, s, rho = np.loadtxt(data_filename, unpack=True)
     # Compute standard quantitites.
-    q = gw.mass_ratio(m_1,m_2)
     eta = gw.symmetric_mass_ratio(m_1, m_2)
     M_c = gw.chirp_mass(m_1, m_2)
+    M_c_err = gw.chirp_mass_error(M_c, rho)
+    q = gw.mass_ratio(m_1, m_2)
+    q_err = gw.mass_ratio_error(M_c, rho)
     D = gw.detectable_distance(M_c)
     V = (4/3) * np.pi * D**3
     # Run the code written by an individual person.
-    individual_fn(name, output_directory)(m_1, m_2, s, rho, q, eta, M_c, V)
+    fn = individual_fn(name, output_directory)
+    fn(m_1, m_2, s, rho, q, q_err, eta, M_c, M_c_err, V)
 
 
 
