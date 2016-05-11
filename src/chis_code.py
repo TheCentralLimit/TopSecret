@@ -16,6 +16,8 @@ from matplotlib.ticker import MaxNLocator
 
 # group modulus
 import density as ds
+import dans_code as dan
+
 # Reproducible results!
 np.random.seed(123)
 
@@ -23,16 +25,38 @@ def chis_code(m_1, m_2, s, rho, q, eta, M_c, V, output_directory):
     fit = fitting_MCMC(M_c,V,1)
     return (M_c,V,1)
 
+# Define a polynomial
+def poly_model(x, degree):
+    Y = np.array([1]*len(x))
+    
+    for i in range(1,degree):
+        Y = np.append(Y,x**i)
+    
+    Y = Y.reshape(degree,len(x))
+    return Y
+    
 # Define the probability function as likelihood * prior.
 def lnprior(theta):
-    m1, m2, m3, m4, m5, b, lnf = theta
-    #if -5.0 < m < 0.5 and 0.0 < b < 10.0 and -10.0 < lnf < 1.0:
-     #   return 0.0
-    return 0.0#-np.inf
+    """
+    Example usage of polynomial smoothing prior.
+    """
+    # Polynomial is 0 + 1x + ... + 4x^4.
+    p = np.arange(2)
+    # Smooth derivatives of 3rd degree and higher.
+    smoothing_degree = 3
+    # Integrate from 0 to 2.
+    xmin, xmax = 0, 2
+    # Do not scale result.
+    gamma = 1
+
+    # Run the function and display the result.
+    lnp = dan.smoothing_poly_lnprior(p, smoothing_degree, xmin, xmax, gamma)
+
+    return lnp
 
 def lnlike(theta, x, y, yerr):
-    m1, m2, m3, m4, b, lnf = theta
-    model = m1 * x**(4) + m2 * x**(3) + m3 * x(2) + m4 * x + b
+    m, b, lnf = theta
+    model = m * x + b
     inv_sigma2 = 1.0/(yerr**2 + model**2*np.exp(2*lnf))
     return -0.5*(np.sum((y-model)**2*inv_sigma2 - np.log(inv_sigma2)))
 
@@ -46,10 +70,12 @@ def lnprob(theta, x, y, yerr):
 def fitting_MCMC(M_c,V,T):
     # Transform M_c into log-space.
     N = len(M_c)
-    x = M_c
+    x = np.log(M_c)
     y = ds.formation_rate_estimator(M_c,V,T,bandwidth="scott")
-    yerr = 0.005*np.random.rand(N)
+    y = np.log(y)
+    yerr = 0.05*np.random.rand(N)
     y += yerr
+    lnf = 0.05
 
     # Plot the dataset and the true model.
     fig,ax = pl.subplots()
@@ -59,44 +85,50 @@ def fitting_MCMC(M_c,V,T):
     #pl.savefig("line-data.pdf")
 
     # Do the least-squares fit and compute the uncertainties.
-    A = np.vstack((np.ones_like(x), x)).T
+    model = poly_model(x,6)
+    A = model.T
+    print(A)
     C = np.diag(yerr * yerr)
     cov = np.linalg.inv(np.dot(A.T, np.linalg.solve(C, A)))
-    b_ls, m_ls = np.dot(cov, np.dot(A.T, np.linalg.solve(C, y)))
+    lam0_ls, lam1_ls, lam2_ls, lam3_ls, lam4_ls, lam5_ls = np.dot(cov, np.dot(A.T, np.linalg.solve(C, y)))
     print("""Least-squares results:
-        m = {0} ± {1}
-        b = {2} ± {3}
-    """.format(m_ls, np.sqrt(cov[1, 1]), b_ls, np.sqrt(cov[0, 0])))
+        lam0 = {0} ± {1}
+        lam1 = {2} ± {3}
+        lam2 = {4} ± {5}
+        lam3 = {6} ± {7}
+    """.format(lam0_ls, np.sqrt(cov[0, 0]), lam1_ls, np.sqrt(cov[1, 1]), 
+               lam2_ls, np.sqrt(cov[2, 2]), lam3_ls, np.sqrt(cov[3, 3]),
+               lam4_ls, np.sqrt(cov[4, 4]), lam5_ls, np.sqrt(cov[5, 5])))
 
     # Plot the least-squares result.
-    xl = np.array([0, 100])
-    ax.plot(xl, m_ls*xl+b_ls, "-r")
+    xl = np.linspace(-1, 5,1000)
+    ax.plot(xl,lam0_ls + lam1_ls*xl + lam2_ls*xl*xl + lam3_ls*xl**3 + lam4_ls*xl**4 + lam5_ls*xl**5, "-r")
     #pl.savefig("line-least-squares.pdf")
     pl.show()
 
     # Find the maximum likelihood value.
     chi2 = lambda *args: -2 * lnlike(*args)
-    result = op.minimize(chi2, [0,0,0,0,0,0] ,args=(x, y, yerr))
-    m_ml1, m_ml2, m_ml3, m_ml4, b_ml, lnf_ml = result["x"]
-    print("""Maximum likelihood result:
-        m1,m2,m3,m4 = {0},{1},{2},{3} 
-        b = {4}
-        f = {5} 
-    """.format(m_ml, m_ml2, m_ml3, m_ml4, b_ml, np.exp(lnf_ml)))
+    result = op.minimize(chi2, [m_ls, b_ls,lnf], args=(x, y, yerr))
+    m_ml, b_ml, lnf_ml = result["x"]
+    #print("""Maximum likelihood result:
+     #   m = {0} 
+      #  b = {1}
+       # f = {2} 
+    #""".format(m_ml, b_ml, np.exp(lnf_ml)))
 
     # Plot the maximum likelihood result.
-    pl.plot(xl, m_ml1 * x**(4) + m_ml2 * x**(3) + m_ml3 * x(2) + m_ml4 * x + b_ml, "k", lw=2)
+    #pl.plot(xl, m_ml*xl+b_ml, "k", lw=2)
     #pl.savefig("line-max-likelihood.pdf")
-    pl.show()
+    #pl.show()
 
     # Set up the sampler.
-    ndim, nwalkers = 3, 10
+    ndim, nwalkers = 3, 100
     pos = [result["x"] + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(x, y, yerr))
 
     # Clear and run the production chain.
     print("Running MCMC...")
-    sampler.run_mcmc(pos, 10, rstate0=np.random.get_state())
+    sampler.run_mcmc(pos, 1000, rstate0=np.random.get_state())
     print("Done.")
 
     pl.clf()

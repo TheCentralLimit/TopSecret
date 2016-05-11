@@ -64,6 +64,9 @@ target/
 # Pickles
 *.pkl
 
+# OSX
+.DS_Store
+
 
 # Emacs
 *~
