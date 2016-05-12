@@ -2,8 +2,17 @@
 Utility functions.
 """
 
+from itertools import tee
+
 from os import makedirs
 from os.path import isdir
+
+
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = tee(iterable)
+    next(b, None)
+    return zip(a, b)
 
 
 def make_sure_path_exists(path):
