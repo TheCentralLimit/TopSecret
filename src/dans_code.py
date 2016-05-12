@@ -10,7 +10,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from statsmodels.nonparametric.kde import KDEUnivariate
 from statsmodels.regression.linear_model import WLS
-
+from statsmodels.sandbox.regression.predstd import wls_prediction_std
 
 from os import path
 
@@ -128,26 +128,19 @@ def chirp_mass_distribution(M_c, x_err, V, T, S, output_directory,
     F = np.column_stack((np.ones_like(x), x))
     F_smooth = np.column_stack((np.ones_like(x_smooth), x_smooth))
 
-    ols_model = WLS(log_r, F, 1/log_r_err)
-    ols_results = ols_model.fit()
+    # Perform Bayesian linear regression.
+    cov_r = np.diag(log_r_err)
+    icov_lambda = np.dot(F.T, np.linalg.solve(cov_r, F))
+    mu_lambda = np.dot(np.linalg.solve(icov_lambda, F.T),
+                       np.linalg.solve(cov_r, log_r))
 
-#    intercept, slope = np.linalg.lstsq(F, np.log10(r))[0]
-    intercept, slope = ols_results.params
+    log_r_fit = np.dot(F_smooth, mu_lambda)
+    cov_r_fit = np.dot(F_smooth, np.linalg.solve(icov_lambda, F_smooth.T))
+    log_r_fit_err = np.sqrt(np.diag(cov_r_fit))
 
-    # Compute fitted rate.
-    r_fit = 10**(slope*x_smooth + intercept)
-
-    # Compute uncertainty in fitted rate.
-    cov_lambda = ols_results.cov_HC0
-    cov_r = np.diag(r_smooth_err**2)
-    joint_cov_lambda_r = np.linalg.inv(
-        np.linalg.inv(cov_lambda)
-      + np.dot(F_smooth.T, np.linalg.solve(cov_r, F_smooth))
-    )
-
-    r_fit_err = np.sqrt(
-        np.diagonal(reduce(np.dot, [F_smooth, joint_cov_lambda_r, F_smooth.T]))
-    )
+    r_fit = 10**log_r_fit
+    r_fit_lower = 10**(log_r_fit - log_r_fit_err)
+    r_fit_upper = 10**(log_r_fit + log_r_fit_err)
 
 
     ##############
@@ -170,7 +163,9 @@ def chirp_mass_distribution(M_c, x_err, V, T, S, output_directory,
                         color="b", alpha=0.1, edgecolor="b")
     #Plot the power-law fit to that KDE.
     ax_pdf.plot(x_smooth, r_fit, "r--")
-    ax_pdf.fill_between(x_smooth, r_fit-r_fit_err, r_fit+r_fit_err,
+#    ax_pdf.fill_between(x_smooth, r_fit-r_fit_err, r_fit+r_fit_err,
+#                        color="r", alpha=0.1, edgecolor="r")
+    ax_pdf.fill_between(x_smooth, r_fit_lower, r_fit_upper,
                         color="r", alpha=0.1, edgecolor="r")
     # Plot the CDF of the KDE.
     ax_cdf.plot(np.sort(x), kde.cdf)
@@ -199,4 +194,4 @@ def dans_code(m_1, m_2, s, rho, q, q_err, eta, M_c, x_err, V,
               output_directory):
 #    smoothing_poly_lnprior_example()
 
-    chirp_mass_distribution(M_c, x_err, V, 1, 5, output_directory)
+    chirp_mass_distribution(M_c, x_err, V, 1, 30, output_directory)
