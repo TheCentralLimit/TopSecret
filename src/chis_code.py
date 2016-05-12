@@ -7,13 +7,14 @@ from __future__ import division, print_function
 from numpy.polynomial import polynomial as P
 from os import path
 #import matplotlib
-#matplotlib.use('Agg')
+
 import emcee
 import corner
 import numpy as np
 import scipy.optimize as op
 import matplotlib.pyplot as pl
 from matplotlib.ticker import MaxNLocator
+matplotlib.use('Agg')
 
 # group modulus
 import density as ds
@@ -28,15 +29,15 @@ def chis_code(m_1, m_2, s, rho, q, q_err, eta, M_c, M_c_err, V,
     N = len(M_c)
     x = np.log10(M_c)
     y = ds.formation_rate_estimator(M_c,V,T,bandwidth="scott")
-    y = np.log10(y)
-    yerr = 0.5*np.random.normal(0,1,len(x))
-    degree = 9 # degree of polynomial
+    #y = np.log10(y)
+    yerr = 0.1*np.random.normal(0,1,len(x))
+    degree = 13 # degree of polynomial
     # least square fitting
     lam_ls,cov_ls = least_square(x,y,yerr,degree,output_directory)
     lam_ml = maximum_likelihood(x,y,yerr,degree,lam_ls,output_directory)
     lam_mcmc = MCMC(x,y,yerr,degree,lam_ls,output_directory)
     
-    return (M_c,V,1)
+    return lam_mcmc
 
 # Define a polynomial
 def poly_model(x, degree):
@@ -81,7 +82,7 @@ def lnprior(theta):
     # Polynomial is 0 + 1x + ... + 4x^4.
     p = np.arange(2)
     # Smooth derivatives of 3rd degree and higher.
-    smoothing_degree = 3
+    smoothing_degree = 1
     # Integrate from 0 to 2.
     xmin, xmax = 0, 2
     # Do not scale result.
@@ -153,51 +154,28 @@ def maximum_likelihood(x,y,yerr,degree,lam_ls,output_directory):
 
 def MCMC(x,y,yerr,degree,lam_ml,output_directory):                                   
     # Set up the sampler.
-    ndim, nwalkers = degree+1, 50
+    ndim, nwalkers = degree+1, 30
     pos = [lam_ml + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(x, y, yerr))
 
     # Clear and run the production chain.
     print("Running MCMC...")
-    sampler.run_mcmc(pos, 10000, rstate0=np.random.get_state())
+    sampler.run_mcmc(pos, 2000, rstate0=np.random.get_state())
     print("Done.")
     
 
     pl.clf()
-    fig, axes = pl.subplots(6, 1, sharex=True, figsize=(8, 9))
-    axes[0].plot(sampler.chain[:, :, 0].T, color="k", alpha=0.4)
-    axes[0].yaxis.set_major_locator(MaxNLocator(5))
-    #axes[0].axhline(m_true, color="#888888", lw=2)
+    fig, axes = pl.subplots(3, 1, sharex=True, figsize=(8, 9))
+    axes[0].plot(sampler.chain[:, :, 10].T, color="k", alpha=0.4)
     axes[0].set_ylabel("$\lambda_0$")
 
-    axes[1].plot(sampler.chain[:, :, 1].T, color="k", alpha=0.4)
-    axes[1].yaxis.set_major_locator(MaxNLocator(5))
-    #axes[1].axhline(b_true, color="#888888", lw=2)
+    axes[1].plot(sampler.chain[:, :, 11].T, color="k", alpha=0.4)
     axes[1].set_ylabel("$\lambda_1$")
 
-    axes[2].plot(np.exp(sampler.chain[:, :, 2]).T, color="k", alpha=0.4)
-    axes[2].yaxis.set_major_locator(MaxNLocator(5))
-    #axes[2].axhline(f_true, color="#888888", lw=2)
+    axes[2].plot(np.exp(sampler.chain[:, :, 12]).T, color="k", alpha=0.4)
     axes[2].set_ylabel("$\lambda_2$")
     axes[2].set_xlabel("step number")
-    
-    axes[3].plot(np.exp(sampler.chain[:, :, 3]).T, color="k", alpha=0.4)
-    axes[3].yaxis.set_major_locator(MaxNLocator(5))
-    #axes[2].axhline(f_true, color="#888888", lw=2)
-    axes[3].set_ylabel("$\lambda_3$")
-    axes[3].set_xlabel("step number")
-    
-    axes[4].plot(np.exp(sampler.chain[:, :, 4]).T, color="k", alpha=0.4)
-    axes[4].yaxis.set_major_locator(MaxNLocator(5))
-    #axes[2].axhline(f_true, color="#888888", lw=2)
-    axes[4].set_ylabel("$\lambda_4$")
-    axes[4].set_xlabel("step number")
-    
-    axes[5].plot(np.exp(sampler.chain[:, :, 5]).T, color="k", alpha=0.4)
-    axes[5].yaxis.set_major_locator(MaxNLocator(5))
-    #axes[2].axhline(f_true, color="#888888", lw=2)
-    axes[5].set_ylabel("$\lambda_5$")
-    axes[5].set_xlabel("step number")
+
 
     fig.tight_layout(h_pad=0.0)
     fig.savefig(path.join(output_directory, "line-time.png"))
@@ -211,11 +189,10 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
     print(samples[0])
     
     lam_MCMC = samples[len(samples)-1]
-    #fig = corner.corner(samples, labels=["$m$", "$b$", "$\ln\,f$"],
-                     # truths=[m_true, b_true, np.log(f_true)])
-    #fig.savefig("line-triangle.jpg")
+    fig = corner.corner(samples)
+    fig.savefig(path.join(output_directory, "line-triangle.jpg"))
 
-    #pl.figure()
+    pl.figure()
     
     # Add a plot of the result. (note the fit to f is a fit to error)
     fig,ax2 = pl.subplots()
