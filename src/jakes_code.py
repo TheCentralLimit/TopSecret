@@ -32,12 +32,12 @@ def jakes_code(m_1, m_2, s, rho, q, q_err, eta, M_c, M_c_err, V, output_director
     fig, ax = plt.subplots(figsize=(10,10))
 
     ax.scatter(M_c_em, np.random.uniform(0, 1, len(M_c_em)),
-               c='r', label='EM detection')
+               c='r', label='EM detection', edgecolors='none')
     ax.scatter(M_c_not_em, np.random.uniform(0, 1, len(M_c_not_em)),
-               c='b', label='Others')
+               c='b', label='Others',edgecolors='none')
 
     ax.set_xlabel('$\mathcal{M}_{c}$')
-
+    ax.set_xscale('log')
     ax.yaxis.set_ticklabels([])
     y = np.random.uniform( 0, 1, len(M_c_em))
 #    print(y)
@@ -63,18 +63,21 @@ def jakes_code(m_1, m_2, s, rho, q, q_err, eta, M_c, M_c_err, V, output_director
     fig1, ax1 = plt.subplots(figsize=(10,10))
 
     ax1.scatter(Mcem_half, np.random.uniform(0, 1, len(Mcem_half)),
-               c='r', label='EM detection')
+               c='r', label='EM detection',edgecolors='none')
     ax1.scatter(Mcnotem_half, np.random.uniform(0, 1, len(Mcnotem_half)),
-               c='b', label='Others')
+               c='b', label='Others',edgecolors='none')
 
     ax1.set_xlabel('$\mathcal{M}_{c}$')
+    ax1.set_xscale('log')
 
     ax1.yaxis.set_ticklabels([])
+    
     y_half = np.random.uniform( 0, 1, len(Mcem_half))
     print(line_half)
     line_array_half = np.empty(len(Mcem_half))
     line_array_half.fill(line_half)
-    ax1.plot(line_array_half,y_half,'-')
+    ax1.axvline(line_half)
+#    ax1.plot(line_array_half,y_half,'-')
     fig1.savefig(path.join(output_directory, "classifier_half.pdf"))
 
     #Showing the full data set with the dividing line trained by half the data
@@ -83,14 +86,18 @@ def jakes_code(m_1, m_2, s, rho, q, q_err, eta, M_c, M_c_err, V, output_director
     line_array_half_for_all = np.empty(len(M_c_em))
     line_array_half_for_all.fill(line_half)
     ax2.scatter(M_c_em, np.random.uniform(0, 1, len(M_c_em)),
-                c='r', label='EM detection')
+                c='r', label='EM detection',edgecolors='none')
     ax2.scatter(M_c_not_em, np.random.uniform(0, 1,len(M_c_not_em)),
-                c='b', label='Others')
+                c='b', label='Others',edgecolors='none')
+    
     ax2.set_xlabel('$\mathcal{M}_{c}$')
+    ax2.set_xscale('log')
     ax2.yaxis.set_ticklabels([])
-    ax2.plot(line_array_half_for_all,y,'-')
+#    ax2.plot(line_array_half_for_all,y,'-')
+    ax2.axvline(line_half)
     fig2.savefig(path.join(output_directory, "classifier_all.pdf"))
     #Print the Max Mc of EM CP and Min of other along with the dividing line Mc
+    print("It works" if Mcem_max < line_half < Mcnotem_min else "It doesn't work")
     print("The Minimum M_c for the Others is: ", Mcnotem_min)
     print("The Maximum M_c for the EM CP is: ", Mcem_max)
     print("The Dividing line trained by half the data is: ", line_half)
