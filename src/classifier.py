@@ -15,6 +15,11 @@ import gw
 
 
 def classifier(m_1, m_2, M_c, s, ax_pdf, ax_data, output_directory):
+    M_c_front = M_c[:len(s)//2]
+    M_c_end   = M_c[len(s)//2:]
+    s_front   = s  [:len(s)//2]
+    s_end     = s  [len(s)//2:]
+
     index_pos = (s==1)
     index_neg = (s==0)
     M_c_em = M_c[index_pos]
@@ -48,17 +53,17 @@ def classifier(m_1, m_2, M_c, s, ax_pdf, ax_data, output_directory):
 
     fig_train, ax = plt.subplots()
 
-    ax.scatter(M_c_em,
-               np.random.uniform(0.0, 0.5, size=np.shape(M_c_em)),
+    ax.scatter(M_c_front[s_front],
+               np.random.uniform(0.0, 0.5, size=np.shape(M_c_front[s_front])),
                edgecolor="red", facecolor="none", marker="s")
-    ax.scatter(Mcem_half,
-               np.random.uniform(0.5, 1.0, size=np.shape(Mcem_half)),
+    ax.scatter(M_c_end[s_end],
+               np.random.uniform(0.5, 1.0, size=np.shape(M_c_end[s_end])),
                edgecolor="red", facecolor="red", marker="s")
-    ax.scatter(M_c_not_em,
-               np.random.uniform(0.0, 0.5, size=np.shape(M_c_not_em)),
+    ax.scatter(M_c_front[~s_front],
+               np.random.uniform(0.0, 0.5, size=np.shape(M_c_front[~s_front])),
                edgecolor="blue", facecolor="none", marker="o")
-    ax.scatter(Mcnotem_half,
-               np.random.uniform(0.5, 1.0, size=np.shape(Mcnotem_half)),
+    ax.scatter(M_c_end[~s_end],
+               np.random.uniform(0.5, 1.0, size=np.shape(M_c_end[~s_end])),
                edgecolor="blue", facecolor="blue", marker="o")
 
     ax.axvline(line_half, color="black", linestyle="--")
