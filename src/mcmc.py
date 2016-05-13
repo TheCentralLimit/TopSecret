@@ -110,18 +110,18 @@ def maximum_likelihood(x,y,yerr,degree,lam_ls,output_directory):
 
 def MCMC(x,y,yerr,degree,lam_ml,output_directory):                                   
     # Set up the sampler.
-    ndim, nwalkers = degree+1, 500
+    ndim, nwalkers = degree+1, 100
     pos = [lam_ml + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(degree, x, y, yerr))
 
     # Clear and run the production chain.
     print("Running MCMC...")
-    sampler.run_mcmc(pos, 2000, rstate0=np.random.get_state())
+    sampler.run_mcmc(pos, 1000, rstate0=np.random.get_state())
     print("Done.")
     
 
     pl.clf()
-    fig, axes = pl.subplots(6, 1, sharex=True, figsize=(8, 9))
+    fig, axes = pl.subplots(5, 1, sharex=True, figsize=(8, 9))
     axes[0].plot(sampler.chain[:, :, 0].T, color="k", alpha=0.4)
     axes[0].set_ylabel("$\lambda_0$")
 
@@ -139,10 +139,6 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
     axes[4].plot(np.exp(sampler.chain[:, :, 4]).T, color="k", alpha=0.4)
     axes[4].set_ylabel("$\lambda_2$")
     axes[4].set_xlabel("step number")
-    
-    axes[5].plot(np.exp(sampler.chain[:, :, 5]).T, color="k", alpha=0.4)
-    axes[5].set_ylabel("$\lambda_2$")
-    axes[5].set_xlabel("step number")
     
     
 
@@ -192,11 +188,30 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
                              zip(*np.percentile(samples, [16, 50, 84],
                                                 axis=0)))
     print("MCMC fit coefficient:\n")
-    print(lam_MCMC_best[:][1])
-    #    m = {0[0]} +{0[1]} -{0[2]} 
-     #   b = {1[0]} +{1[1]} -{1[2]} 
-      #  f = {2[0]} +{2[1]} -{2[2]}
-    #""".format(m_mcmc, b_mcmc, f_mcmc))
+    print(lam_MCMC_best[1][:])
+    
+    print("MCMC uncertainty:\n")
+    print(lam_MCMC_best[2][:])
+    
+    # Add a plot of the result. (note the fit to f is a fit to error)
+    fig,ax2 = pl.subplots()
+    xl = np.linspace(-0.1, 2,1000)
+    lam_MCMC_for_plot = list(reversed(lam_MCMC_best[1][:]))
+    lam_MCMC_uncertainty = list(reversed(lam_MCMC_best[2][:]))
+    y_high = np.zeros(len(xl))
+    y_low = np.zeros(len(xl))
+    yvals = np.polyval(lam_MCMC_for_plot,xl)
+    y_low = np.polyval(lam_MCMC_for_plot-lam_MCMC_uncertainty,xl)
+    y_high = np.polyval(lam_MCMC_for_plot+lam_MCMC_uncertainty,xl)
+    ax2.errorbar(x, y, yerr=yerr, fmt=".k")
+    ax2.plot(xl, yvals, 'c')
+    ax2.plot(xl, y_low, 'k--')
+    ax2.plot(xl, y_high, 'k--')
+    #ax2.set_ylim(-4,4)
+    pl.savefig(path.join(output_directory, "line-MCMC.pdf"))
+    pl.show()
+
+
     
     fig = corner.corner(samples)
     fig.savefig(path.join(output_directory, "line-triangle.jpg"))
@@ -204,5 +219,5 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
     pl.figure()
     
     
-    return lam_MCMC
+    return lam_MCMC_best
 
