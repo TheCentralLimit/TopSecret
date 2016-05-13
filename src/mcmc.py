@@ -111,12 +111,12 @@ def maximum_likelihood(x,y,yerr,degree,lam_ls,output_directory):
 def MCMC(x,y,yerr,degree,lam_ml,output_directory):                                   
     # Set up the sampler.
     ndim, nwalkers = degree+1, 100
-    pos = [lam_ml + 1e-15*np.random.randn(ndim) for i in range(nwalkers)]
+    pos = [lam_ml + 1e-14*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(degree, x, y, yerr))
 
     # Clear and run the production chain.
     print("Running MCMC...")
-    sampler.run_mcmc(pos, 1000, rstate0=np.random.get_state())
+    sampler.run_mcmc(pos, 2000, rstate0=np.random.get_state())
     print("Done.")
     
 
@@ -164,6 +164,8 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
     y_high = np.percentile(yvals,95)
     ax2.errorbar(x, y, yerr=yerr, fmt=".k")
     ax2.plot(xl, yvals, 'c')
+    ax2.set_xlabel('log($M_c$)')
+    ax2.set_ylabel('log(r)')
     #ax2.plot(xl, y_low, 'k--')
     #ax2.plot(xl, y_high, 'k--')
     #ax2.set_ylim(-4,4)
@@ -187,17 +189,16 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
     lam_MCMC_best = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                              zip(*np.percentile(samples, [16, 50, 84],
                                                 axis=0)))
-    print("MCMC fit coefficient:\n")
-    print(lam_MCMC_best[1][:])
-    
-    print("MCMC uncertainty:\n")
-    print(lam_MCMC_best[2][:])
-
-    
     fig = corner.corner(samples)
     fig.savefig(path.join(output_directory, "line-triangle.jpg"))
 
     pl.figure()
+    
+    print("MCMC best fit:\n")
+    print(lam_MCMC_best)
+
+    
+
     
     
     return lam_MCMC_best

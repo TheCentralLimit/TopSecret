@@ -49,7 +49,7 @@ def check_nonzero(y_in):
     return index
 
 def yerr_log(y,yerr):
-    yerr_return = (np.log10(y+yerr) - np.log10(y-yerr))/2.0
+    yerr_return = (np.log10(y+yerr) - np.log10(y-yerr))
     return yerr_return
 
 
