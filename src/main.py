@@ -9,13 +9,15 @@ import scipy
 from os import path
 from sys import argv
 
+from fit import power_law
 import gw
 from density import chirp_mass_distribution
 from utils import make_sure_path_exists
 
+from chis_code import chis_code
 
 
-def main(data_filename, output_directory):
+def main(data_filename, output_directory, *features):
     # Set random seed.
     np.random.seed(1)
     # Create output directory if it does not exist.
@@ -31,6 +33,15 @@ def main(data_filename, output_directory):
     D = gw.detectable_distance(M_c)
     V = (4/3) * np.pi * D**3
     T = 0.6
+    # Transform M_c into log-space.
+    x = np.log10(M_c)
+    # Compute the weights for each M_c.
+    w = 1 / (V*T)
+    # Generate `n_smooth` evenly-spaced values of log(M_c) for visualization
+    # purposes.
+    x_smooth = np.linspace(np.min(x), np.max(x), num=1000)
+    M_c_smooth = 10**x_smooth
+
 
     # Create Figure.
     fig_density = plt.figure()
@@ -53,9 +64,13 @@ def main(data_filename, output_directory):
     ax_data.semilogx()
 
 
-    r_fn, r_err_fn = chirp_mass_distribution(M_c, V, T,
-                                             ax_pdf, ax_data,
-                                             n_smooth=1000)
+    r_fn, r_err_fn = chirp_mass_distribution(M_c, M_c_smooth, x, x_smooth, w,
+                                             ax_pdf, ax_data)
+    if ("power_law" in features) or ("all" in features):
+        power_law(r_fn, r_err_fn, M_c, M_c_smooth, x, x_smooth,
+                  ax_pdf, ax_data)
+    if ("mcmc" in features) or ("all" in features):
+        chis_code()
 
     fig_density.savefig(path.join(output_directory,
                                   "chirp-mass-distribution.pdf"))
