@@ -74,7 +74,7 @@ def main(data_filename, output_directory, *features):
     if ("mcmc" in features) or ("all" in features):
         chis_code()
     if ("classifier" in features) or ("all" in features):
-        classifier(M_c, s, ax_pdf, ax_data, output_directory)
+        classifier(m_1, m_2, M_c, s, ax_pdf, ax_data, output_directory)
 
     fig_density.savefig(path.join(output_directory,
                                   "chirp-mass-distribution.pdf"))

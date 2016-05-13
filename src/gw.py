@@ -68,3 +68,15 @@ def detectable_distance(chirp_mass):
     D = 200*(chirp_mass/1.2)**(5/6)
 
     return D
+
+
+def m_2(m_1, M_c):
+    X = (
+        9 * m_1**7 * M_c**5
+      + np.sqrt(3 * m_1**9 * M_c**10 * (27 * m_1**5 - 4 * M_c**3))
+    )**(1/3)
+
+    return (
+        (2/3)**(1/3) * M_c**5 / X
+      + X / (2**(1/3) * 3**(2/3) * m_1**3)
+    )

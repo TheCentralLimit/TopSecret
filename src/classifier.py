@@ -11,10 +11,10 @@ from astroML.utils import completeness_contamination
 
 from os import path
 
+import gw
 
 
-
-def classifier(M_c, s, ax_pdf, ax_data, output_directory):
+def classifier(m_1, m_2, M_c, s, ax_pdf, ax_data, output_directory):
     index_pos = (s==1)
     index_neg = (s==0)
     M_c_em = M_c[index_pos]
@@ -46,7 +46,7 @@ def classifier(M_c, s, ax_pdf, ax_data, output_directory):
     ax_pdf.axvline(line_half, color="black", linestyle="--")
     ax_data.axvline(line_half, color="black", linestyle="--")
 
-    fig, ax = plt.subplots()
+    fig_train, ax = plt.subplots()
 
     ax.scatter(M_c_em,
                np.random.uniform(0.0, 0.5, size=np.shape(M_c_em)),
@@ -68,4 +68,24 @@ def classifier(M_c, s, ax_pdf, ax_data, output_directory):
     ax.semilogx()
     ax.yaxis.set_ticklabels([])
 
-    fig.savefig(path.join(output_directory, "classifier_comparison.pdf"))
+    fig_train.savefig(path.join(output_directory, "classifier_comparison.pdf"))
+
+
+
+    fig_2d, ax_2d = plt.subplots()
+
+    m_1_smooth = np.logspace(0, 1.3, 1000)
+
+    ax_2d.scatter(m_1[s], m_2[s],
+                  color="red", marker="s")
+    ax_2d.scatter(m_1[~s], m_2[~s],
+                  color="blue", marker="o")
+
+    ax_2d.plot(m_1_smooth, gw.m_2(m_1_smooth, line_half), "k--")
+
+    ax_2d.set_xlabel(r"$m_1\ [M_\odot]$")
+    ax_2d.set_ylabel(r"$m_2\ [M_\odot]$")
+
+    ax_2d.loglog()
+
+    fig_2d.savefig(path.join(output_directory, "mass-distribution.pdf"))
