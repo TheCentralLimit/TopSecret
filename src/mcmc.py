@@ -192,7 +192,7 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
                              zip(*np.percentile(samples, [16, 50, 84],
                                                 axis=0)))
     print("MCMC fit coefficient:\n")
-    print(lam_MCMC_best[:,1])
+    print(lam_MCMC_best[:][1])
     #    m = {0[0]} +{0[1]} -{0[2]} 
      #   b = {1[0]} +{1[1]} -{1[2]} 
       #  f = {2[0]} +{2[1]} -{2[2]}

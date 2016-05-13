@@ -6,7 +6,7 @@ Code written by Chi Nguyen.
 from __future__ import division, print_function
 from numpy.polynomial import polynomial as P
 from os import path
-import matplotlib
+#import matplotlib
 
 import emcee
 import corner
@@ -23,15 +23,15 @@ import mcmc
 # Reproducible results!
 np.random.seed(123)
 
-def chis_code(x,y,yerr,output_directory):
+def chis_code(x_in,y_in,yerr_in,output_directory):
     # Transform M_c into log-space.
-    #index = check_nonzero(y_in)
-    #x = x_in[index>0]
-    #y_not_log = y_in[index>0]
-    #y = np.log10(y_not_log)
-    #yerr_not_log = yerr_in[index>0]
+    index = check_nonzero(y_in)
+    x = x_in[index>0]
+    y_not_log = y_in[index>0]
+    y = np.log10(y_not_log)
+    yerr_not_log = yerr_in[index>0]
     #yerr = error(y_not_log,yerr_not_log)
-    #yerr = np.log10(yerr_not_log)
+    yerr = np.log10(yerr_not_log)
     
     print(len(yerr))
     

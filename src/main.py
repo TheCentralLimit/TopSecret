@@ -71,18 +71,15 @@ def main(data_filename, output_directory, *features):
         power_law(r_fn, r_err_fn, M_c, M_c_smooth, x, x_smooth,
                   ax_pdf, ax_data)
     if ("mcmc" in features) or ("all" in features):
-<<<<<<< HEAD
         lam_mcmc = chis_code(np.log10(M_c),r_fn(np.log10(M_c)),r_err_fn(np.log10(M_c)),output_directory) # (x,y,yerr)
         lam_mcmc_for_plot = list(reversed(lam_mcmc))
-    
-=======
+
         chis_code()
     if ("classifier" in features) or ("all" in features):
         classifier(m_1, m_2, M_c, s, ax_pdf, ax_data, output_directory)
 
     ax_pdf.legend()
 
->>>>>>> 8831460847bd9d2ae1ca1b609ad877778ee63794
     fig_density.savefig(path.join(output_directory,
                                   "chirp-mass-distribution.pdf"))
 
