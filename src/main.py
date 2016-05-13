@@ -9,6 +9,7 @@ import scipy
 from os import path
 from sys import argv
 
+from classifier import classifier
 from fit import power_law
 import gw
 from density import chirp_mass_distribution
@@ -71,6 +72,8 @@ def main(data_filename, output_directory, *features):
                   ax_pdf, ax_data)
     if ("mcmc" in features) or ("all" in features):
         chis_code()
+    if ("classifier" in features) or ("all" in features):
+        classifier(M_c, s, ax_pdf, ax_data, output_directory)
 
     fig_density.savefig(path.join(output_directory,
                                   "chirp-mass-distribution.pdf"))

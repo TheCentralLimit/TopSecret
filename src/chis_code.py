@@ -6,7 +6,7 @@ Code written by Chi Nguyen.
 from __future__ import division, print_function
 from numpy.polynomial import polynomial as P
 from os import path
-#import matplotlib
+import matplotlib
 
 import emcee
 import corner
