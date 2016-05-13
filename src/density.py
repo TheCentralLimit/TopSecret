@@ -52,7 +52,8 @@ def chirp_mass_distribution(M_c, M_c_smooth, x, x_smooth, w, s,
 
 
     # Plot the histogram rate
-    ax_pdf.plot(M_c_smooth, r_smooth, "b-")
+    ax_pdf.plot(M_c_smooth, r_smooth, "b-",
+                label="Histogram")
     ax_pdf.fill_between(M_c_smooth, r_smooth-r_smooth_err, r_smooth+r_smooth_err,
                         color="b", alpha=0.1, edgecolor="b")
     # Plot the original data points, with random y-values for visualization

@@ -76,6 +76,8 @@ def main(data_filename, output_directory, *features):
     if ("classifier" in features) or ("all" in features):
         classifier(m_1, m_2, M_c, s, ax_pdf, ax_data, output_directory)
 
+    ax_pdf.legend()
+
     fig_density.savefig(path.join(output_directory,
                                   "chirp-mass-distribution.pdf"))
 
