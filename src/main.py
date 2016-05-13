@@ -16,7 +16,6 @@ from utils import make_sure_path_exists
 
 from chis_code import chis_code
 
-
 def main(data_filename, output_directory, *features):
     # Set random seed.
     np.random.seed(1)
@@ -70,8 +69,9 @@ def main(data_filename, output_directory, *features):
         power_law(r_fn, r_err_fn, M_c, M_c_smooth, x, x_smooth,
                   ax_pdf, ax_data)
     if ("mcmc" in features) or ("all" in features):
-        chis_code()
-
+        lam_mcmc = chis_code(np.log10(M_c),r_fn(np.log10(M_c)),r_err_fn(np.log10(M_c)),output_directory) # (x,y,yerr)
+        lam_mcmc_for_plot = list(reversed(lam_mcmc))
+    
     fig_density.savefig(path.join(output_directory,
                                   "chirp-mass-distribution.pdf"))
 
