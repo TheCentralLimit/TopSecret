@@ -13,7 +13,7 @@ It's classified...
 $ python2 main.py [data file] [output directory] [features]*
 ```
 
-where `[data file]` is the path to the data file, `[output directory]` is the directory you would like to output results to, and `[features]*` is any number of "features". Supported features are `power_law` and `mcmc`. If you would like to enable all features, just use `all`.
+where `[data file]` is the path to the data file, `[output directory]` is the directory you would like to output results to, and `[features]*` is any number of "features". Supported features are `power_law`, `mcmc`, and `classifier`. If you would like to enable all features, just use `all`.
 
 
 # Credit

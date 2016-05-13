@@ -9,6 +9,7 @@ import scipy
 from os import path
 from sys import argv
 
+from classifier import classifier
 from fit import power_law
 import gw
 from density import chirp_mass_distribution
@@ -23,6 +24,7 @@ def main(data_filename, output_directory, *features):
     make_sure_path_exists(output_directory)
     # Load data from file.
     m_1, m_2, s, rho = np.loadtxt(data_filename, unpack=True)
+    s = s.astype(bool)
     # Compute standard quantitites.
     eta = gw.symmetric_mass_ratio(m_1, m_2)
     M_c = gw.chirp_mass(m_1, m_2)
@@ -52,7 +54,7 @@ def main(data_filename, output_directory, *features):
     ax_data = fig_density.add_subplot(gs[1], sharex=ax_pdf)
 
     # Set axis labels.
-    ax_data.set_xlabel(r"$\mathcal{M}_c$")
+    ax_data.set_xlabel(r"$\mathcal{M}_c\ [M_\odot]$")
     ax_pdf.set_ylabel(r"$r(\mathcal{M}_c)$")
 
     # Hide unwanted axis ticks and tick labels.
@@ -63,15 +65,24 @@ def main(data_filename, output_directory, *features):
     ax_data.semilogx()
 
 
-    r_fn, r_err_fn = chirp_mass_distribution(M_c, M_c_smooth, x, x_smooth, w,
+    r_fn, r_err_fn = chirp_mass_distribution(M_c, M_c_smooth, x, x_smooth, w, s,
                                              ax_pdf, ax_data)
     if ("power_law" in features) or ("all" in features):
         power_law(r_fn, r_err_fn, M_c, M_c_smooth, x, x_smooth,
                   ax_pdf, ax_data)
     if ("mcmc" in features) or ("all" in features):
+<<<<<<< HEAD
         lam_mcmc = chis_code(np.log10(M_c),r_fn(np.log10(M_c)),r_err_fn(np.log10(M_c)),output_directory) # (x,y,yerr)
         lam_mcmc_for_plot = list(reversed(lam_mcmc))
     
+=======
+        chis_code()
+    if ("classifier" in features) or ("all" in features):
+        classifier(m_1, m_2, M_c, s, ax_pdf, ax_data, output_directory)
+
+    ax_pdf.legend()
+
+>>>>>>> 8831460847bd9d2ae1ca1b609ad877778ee63794
     fig_density.savefig(path.join(output_directory,
                                   "chirp-mass-distribution.pdf"))
 
