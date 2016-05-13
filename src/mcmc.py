@@ -91,11 +91,7 @@ def chi2(*args):
 
 # define least-square to provide initial guess for MCMC
 def least_square(x,y,yerr,degree,output_directory):
-    # Plot the dataset and the true model.
-    fig,ax = pl.subplots()
-    ax.errorbar(x, y, yerr=yerr, fmt=".k")
-    
-    # Do the least-squares fit and compute the uncertainties.
+    # Do the least-squares fit
     A = poly_model(x, degree)
     lam_ls,residual,rank,s = np.linalg.lstsq(A,y)
     print("Least square fit coefficients:\n",lam_ls)
@@ -110,8 +106,8 @@ def maximum_likelihood(x,y,yerr,degree,lam_ls,output_directory):
 
 def MCMC(x,y,yerr,degree,lam_ml,output_directory):                                   
     # Set up the sampler.
-    ndim, nwalkers = degree+1, 500
-    pos = [lam_ml + 1e-2*np.random.randn(ndim) for i in range(nwalkers)]
+    ndim, nwalkers = degree+1, 100
+    pos = [lam_ml + 1e-15*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(degree, x, y, yerr))
 
     # Clear and run the production chain.
@@ -120,7 +116,7 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
     print("Done.")
     
 
-    pl.clf()
+    #pl.clf()
     fig, axes = pl.subplots(5, 1, sharex=True, figsize=(8, 9))
     axes[0].plot(sampler.chain[:, :, 0].T, color="k", alpha=0.4)
     axes[0].set_ylabel("$\lambda_0$")
@@ -197,9 +193,6 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
     print("MCMC best fit:\n")
     print(lam_MCMC_best)
 
-    
-
-    
     
     return lam_MCMC_best
 
