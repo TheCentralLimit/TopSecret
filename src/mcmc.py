@@ -192,25 +192,6 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
     
     print("MCMC uncertainty:\n")
     print(lam_MCMC_best[2][:])
-    
-    # Add a plot of the result. (note the fit to f is a fit to error)
-    fig,ax2 = pl.subplots()
-    xl = np.linspace(-0.1, 2,1000)
-    lam_MCMC_for_plot = list(reversed(lam_MCMC_best[1][:]))
-    lam_MCMC_uncertainty = list(reversed(lam_MCMC_best[2][:]))
-    y_high = np.zeros(len(xl))
-    y_low = np.zeros(len(xl))
-    yvals = np.polyval(lam_MCMC_for_plot,xl)
-    y_low = np.polyval(lam_MCMC_for_plot-lam_MCMC_uncertainty,xl)
-    y_high = np.polyval(lam_MCMC_for_plot+lam_MCMC_uncertainty,xl)
-    ax2.errorbar(x, y, yerr=yerr, fmt=".k")
-    ax2.plot(xl, yvals, 'c')
-    ax2.plot(xl, y_low, 'k--')
-    ax2.plot(xl, y_high, 'k--')
-    #ax2.set_ylim(-4,4)
-    pl.savefig(path.join(output_directory, "line-MCMC.pdf"))
-    pl.show()
-
 
     
     fig = corner.corner(samples)
