@@ -110,8 +110,8 @@ def maximum_likelihood(x,y,yerr,degree,lam_ls,output_directory):
 
 def MCMC(x,y,yerr,degree,lam_ml,output_directory):                                   
     # Set up the sampler.
-    ndim, nwalkers = degree+1, 100
-    pos = [lam_ml + 1e-14*np.random.randn(ndim) for i in range(nwalkers)]
+    ndim, nwalkers = degree+1, 500
+    pos = [lam_ml + 1e-2*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(degree, x, y, yerr))
 
     # Clear and run the production chain.
