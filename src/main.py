@@ -73,7 +73,10 @@ def main(data_filename, output_directory, *features):
     if ("mcmc" in features) or ("all" in features):
         lam_mcmc = chis_code(np.log10(M_c),r_fn(np.log10(M_c)),r_err_fn(np.log10(M_c)),output_directory) # (x,y,yerr)
         lam_mcmc_for_plot = list(reversed(lam_mcmc))
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9b56894eda4226480e66a08e2bb9a1063098da5e
         chis_code()
     if ("classifier" in features) or ("all" in features):
         classifier(m_1, m_2, M_c, s, ax_pdf, ax_data, output_directory)
