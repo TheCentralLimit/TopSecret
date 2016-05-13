@@ -25,6 +25,7 @@ def main(data_filename, output_directory, *features):
     make_sure_path_exists(output_directory)
     # Load data from file.
     m_1, m_2, s, rho = np.loadtxt(data_filename, unpack=True)
+    s = s.astype(bool)
     # Compute standard quantitites.
     eta = gw.symmetric_mass_ratio(m_1, m_2)
     M_c = gw.chirp_mass(m_1, m_2)
@@ -54,7 +55,7 @@ def main(data_filename, output_directory, *features):
     ax_data = fig_density.add_subplot(gs[1], sharex=ax_pdf)
 
     # Set axis labels.
-    ax_data.set_xlabel(r"$\mathcal{M}_c$")
+    ax_data.set_xlabel(r"$\mathcal{M}_c\ [M_\odot]$")
     ax_pdf.set_ylabel(r"$r(\mathcal{M}_c)$")
 
     # Hide unwanted axis ticks and tick labels.
@@ -65,7 +66,7 @@ def main(data_filename, output_directory, *features):
     ax_data.semilogx()
 
 
-    r_fn, r_err_fn = chirp_mass_distribution(M_c, M_c_smooth, x, x_smooth, w,
+    r_fn, r_err_fn = chirp_mass_distribution(M_c, M_c_smooth, x, x_smooth, w, s,
                                              ax_pdf, ax_data)
     if ("power_law" in features) or ("all" in features):
         power_law(r_fn, r_err_fn, M_c, M_c_smooth, x, x_smooth,

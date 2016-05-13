@@ -36,7 +36,7 @@ def hist_err(x, weights, bin_edges, bin_weights):
     return np.sqrt(var)
 
 
-def chirp_mass_distribution(M_c, M_c_smooth, x, x_smooth, w,
+def chirp_mass_distribution(M_c, M_c_smooth, x, x_smooth, w, s,
                             ax_pdf, ax_data):
     # Fit a histogram to the data.
     bin_weights, bin_edges = np.histogram(x, weights=w, bins=knuth_n_bins(x))
@@ -57,7 +57,9 @@ def chirp_mass_distribution(M_c, M_c_smooth, x, x_smooth, w,
                         color="b", alpha=0.1, edgecolor="b")
     # Plot the original data points, with random y-values for visualization
     # purposes.
-    ax_data.scatter(M_c, np.random.uniform(size=np.shape(M_c)),
-                    c="black", marker="+", alpha=0.2)
+    ax_data.scatter(M_c[s], np.random.uniform(size=np.shape(M_c[s])),
+                    c="red", marker="+", alpha=1.0)
+    ax_data.scatter(M_c[~s], np.random.uniform(size=np.shape(M_c[~s])),
+                    c="blue", marker="x", alpha=0.1, edgecolor="none")
 
     return r_fn, r_err_fn
