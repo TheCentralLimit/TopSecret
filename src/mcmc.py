@@ -79,7 +79,7 @@ def lnlike(theta, x, y, yerr):
  
     model = np.polyval(theta,x)
     inv_sigma2 = 1.0/(yerr**2) #+ model**2*np.exp(2*lnf))
-    return -0.5*(np.sum((y-model)**2*inv_sigma2 - np.log(inv_sigma2)))
+    return -0.5*(np.sum((y-model)**2*inv_sigma2))# - np.log(inv_sigma2)))
 
 def lnprob(theta, degree, x, y, yerr):
     xmin = np.amin(x)
