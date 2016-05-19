@@ -94,3 +94,33 @@ def classifier(m_1, m_2, M_c, s, ax_pdf, ax_data, output_directory):
     ax_2d.loglog()
 
     fig_2d.savefig(path.join(output_directory, "mass-distribution.pdf"))
+    
+
+    m1_m2 = np.column_stack((m_1,m_2))
+    train2 =  np.log10(m1_m2[:len(m1_m2)//2])
+    clf = LinearSVC(C=100,class_weight='balanced').fit(train2, index_pos_half)
+    index_pos_half_pred = clf.predict(train2)
+    completeness2, contamination2 = completeness_contamination(index_pos_half_pred, index_pos_half)
+    print("2D completeness: ", completeness2)
+    print("2D contamination: ", contamination2)
+
+
+
+    xx, yy = np.meshgrid(np.logspace(np.log10(m_1.min()), np.log10(m_1.max()), 500,endpoint=True),
+                         np.logspace(np.log10(m_2.min()), np.log10(m_2.max()), 500,endpoint=True))
+
+    Z = clf.predict(np.log10(np.c_[xx.ravel(), yy.ravel()]))
+    
+    Z = Z.reshape(xx.shape)
+    print(np.unique(s))
+    fig2d, ax2d = plt.subplots()
+    ax2d.contourf(xx, yy, Z, cmap=plt.cm.Paired, alpha=0.8,antialiased=False,
+                  extend='neither')
+    ax2d.scatter(m_1, m_2, c=s, cmap=plt.cm.Paired)
+    ax2d.set_xlabel('m$_1$')
+    ax2d.set_ylabel('m$_2$')
+    ax2d.loglog()
+    ax2d.set_xlim(m_1.min(), m_1.max())
+    ax2d.set_ylim(m_2.min(), m_2.max())
+    
+    fig2d.savefig(path.join(output_directory, "classifier-2D.pdf"))
