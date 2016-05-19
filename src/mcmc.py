@@ -57,6 +57,8 @@ def smoothing_poly_lnprior(poly, degree, xmin, xmax, gamma=1):
     return lnp
 
 def lnprior(theta,degree,xmin,xmax):
+    xmin = xmin - 1.0
+    xmax = xmax + 1.0
     """
     Example usage of polynomial smoothing prior.
     """
@@ -66,7 +68,7 @@ def lnprior(theta,degree,xmin,xmax):
     smoothing_degree = 3
     # Integrate from xmin to xmax
     # Do not scale result.
-    gamma = 3
+    gamma = 0.5
 
     # Run the function and display the result.
     lnp = smoothing_poly_lnprior(p, smoothing_degree, xmin, xmax, gamma)

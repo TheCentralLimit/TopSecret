@@ -32,7 +32,7 @@ def chis_code(x_in,y_in,yerr_in,output_directory):
     
     print(len(yerr))
     
-    degree = 7 # degree of polynomial
+    degree = 9 # degree of polynomial
     # least square fitting
     lam_ls = mcmc.least_square(x,y,yerr,degree,output_directory)
     lam_ml = mcmc.maximum_likelihood(x,y,yerr,degree,lam_ls,output_directory)
