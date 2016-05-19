@@ -37,7 +37,7 @@ def hist_err(x, weights, bin_edges, bin_weights):
 
 
 def chirp_mass_distribution(M_c, M_c_smooth, x, x_smooth, w, s,
-                            ax_pdf, ax_data):
+                            ax_pdf, ax_data, ax_log_pdf, ax_log_data):
     # Fit a histogram to the data.
     bin_weights, bin_edges = np.histogram(x, weights=w, bins=knuth_n_bins(x))
     bin_errors = hist_err(x, w, bin_edges, bin_weights)
@@ -52,15 +52,24 @@ def chirp_mass_distribution(M_c, M_c_smooth, x, x_smooth, w, s,
 
 
     # Plot the histogram rate
-    ax_pdf.plot(M_c_smooth, r_smooth, "b-",
+    for ax in [ax_pdf, ax_log_pdf]:
+        ax.plot(M_c_smooth, r_smooth, "b-",
                 label="Histogram")
-    ax_pdf.fill_between(M_c_smooth, r_smooth-r_smooth_err, r_smooth+r_smooth_err,
+    # Plot the error bars on the histogram rate
+    ax_pdf.fill_between(M_c_smooth,
+                        r_smooth-r_smooth_err, r_smooth+r_smooth_err,
                         color="b", alpha=0.1, edgecolor="b")
+    for sign in [+1, -1]:
+        ax_log_pdf.plot(M_c_smooth, r_smooth + sign*r_smooth_err,
+                        "b-", alpha=0.1)
+
+
     # Plot the original data points, with random y-values for visualization
     # purposes.
-    ax_data.scatter(M_c[s], np.random.uniform(size=np.shape(M_c[s])),
-                    c="red", marker="+", alpha=1.0)
-    ax_data.scatter(M_c[~s], np.random.uniform(size=np.shape(M_c[~s])),
-                    c="blue", marker="x", alpha=0.1, edgecolor="none")
+    for ax in [ax_data, ax_log_data]:
+        ax.scatter(M_c[s], np.random.uniform(size=np.shape(M_c[s])),
+                   c="red", marker="+", alpha=1.0)
+        ax.scatter(M_c[~s], np.random.uniform(size=np.shape(M_c[~s])),
+                   c="blue", marker="x", alpha=0.1, edgecolor="none")
 
     return r_fn, r_err_fn

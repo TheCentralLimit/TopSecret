@@ -65,22 +65,48 @@ def main(data_filename, output_directory, *features):
     ax_data.semilogx()
 
 
+    # Create log-scale Figure.
+    fig_log_density = plt.figure()
+    # Set layout of Figure such that there are 3 vertically stacked subplots,
+    # with the bottom one being 1/5 the size of the other two.
+    gs = mpl.gridspec.GridSpec(2, 1, height_ratios=[5,1])
+    # Create subplot axes, with shared x-axes.
+    ax_log_pdf  = fig_log_density.add_subplot(gs[0])
+    ax_log_data = fig_log_density.add_subplot(gs[1], sharex=ax_log_pdf)
+
+    # Set axis labels.
+    ax_log_data.set_xlabel(r"$\mathcal{M}_c\ [M_\odot]$")
+    ax_log_pdf.set_ylabel(r"$r(\mathcal{M}_c)$")
+
+    # Hide unwanted axis ticks and tick labels.
+    plt.setp(ax_log_pdf.xaxis.get_ticklabels(), visible=False)
+    ax_log_data.yaxis.set_ticks([])
+
+    ax_log_pdf.loglog()
+    ax_log_data.semilogx()
+
+
     r_fn, r_err_fn = chirp_mass_distribution(M_c, M_c_smooth, x, x_smooth, w, s,
-                                             ax_pdf, ax_data)
+                                             ax_pdf, ax_data,
+                                             ax_log_pdf, ax_log_data)
     if ("power_law" in features) or ("all" in features):
         power_law(r_fn, r_err_fn, M_c, M_c_smooth, x, x_smooth,
-                  ax_pdf, ax_data)
+                  ax_pdf, ax_data, ax_log_pdf, ax_log_data)
     if ("mcmc" in features) or ("all" in features):
         lam_mcmc = chis_code(np.log10(M_c),r_fn(np.log10(M_c)),r_err_fn(np.log10(M_c)),output_directory) # (x,y,yerr)
         
 
     if ("classifier" in features) or ("all" in features):
-        classifier(m_1, m_2, M_c, s, ax_pdf, ax_data, output_directory)
+        classifier(m_1, m_2, M_c, s,
+                   ax_pdf, ax_data, ax_log_pdf, ax_log_data,
+                   output_directory)
 
     ax_pdf.legend()
 
     fig_density.savefig(path.join(output_directory,
                                   "chirp-mass-distribution.pdf"))
+    fig_log_density.savefig(path.join(output_directory,
+                                      "chirp-mass-log-distribution.pdf"))
 
 
 

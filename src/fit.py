@@ -7,7 +7,7 @@ import numpy as np
 
 
 def power_law(r_fn, r_err_fn, M_c, M_c_smooth, x, x_smooth,
-              ax_pdf, ax_data):
+              ax_pdf, ax_data, ax_log_pdf, ax_log_data):
     # Obtain discrete values of the histogram.
     r = r_fn(x)
     # Obtain uncertainties
@@ -39,7 +39,8 @@ def power_law(r_fn, r_err_fn, M_c, M_c_smooth, x, x_smooth,
     r_fit_upper = 10**(log_r_fit + log_r_fit_err)
 
     # Plot the power-law fit to that KDE.
-    ax_pdf.plot(M_c_smooth, r_fit, "r--",
+    for ax in [ax_pdf, ax_log_pdf]:
+        ax.plot(M_c_smooth, r_fit, "r--",
                 label="Power law")
-    ax_pdf.fill_between(M_c_smooth, r_fit_lower, r_fit_upper,
+        ax.fill_between(M_c_smooth, r_fit_lower, r_fit_upper,
                         color="r", alpha=0.1, edgecolor="r")
