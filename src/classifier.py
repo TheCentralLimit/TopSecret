@@ -14,7 +14,9 @@ from os import path
 import gw
 
 
-def classifier(m_1, m_2, M_c, s, ax_pdf, ax_data, output_directory):
+def classifier(m_1, m_2, M_c, s,
+               ax_pdf, ax_data, ax_log_pdf, ax_log_data,
+               output_directory):
     M_c_front = M_c[:len(s)//2]
     M_c_end   = M_c[len(s)//2:]
     s_front   = s  [:len(s)//2]
@@ -48,8 +50,8 @@ def classifier(m_1, m_2, M_c, s, ax_pdf, ax_data, output_directory):
     print("The Maximum M_c for the EM CP is: ", Mcem_max)
     print("The Dividing line trained by half the data is: ", line_half)
 
-    ax_pdf.axvline(line_half, color="black", linestyle="--")
-    ax_data.axvline(line_half, color="black", linestyle="--")
+    for ax in [ax_pdf, ax_data, ax_log_pdf, ax_log_data]:
+        ax.axvline(line_half, color="black", linestyle="--")
 
     fig_train, ax = plt.subplots()
 
