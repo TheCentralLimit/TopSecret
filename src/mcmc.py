@@ -153,7 +153,7 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
     
     # Add a plot of the result. (note the fit to f is a fit to error)
     fig,ax2 = pl.subplots()
-    xl = np.linspace(-0.1, 1.5,1000)
+    xl = np.linspace(-0.1, 1.9,1000)
     y_high = np.zeros(len(xl))
     y_low = np.zeros(len(xl))
     yvals = np.polyval(lam_MCMC,xl)
@@ -171,7 +171,7 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
 
 
     # Plot some samples onto the data.
-    for lam in samples[np.random.randint(len(samples), size=10)]:
+    for lam in samples[np.random.randint(len(samples), size=50)]:
         pl.plot(xl,np.polyval(lam,xl), color="k", alpha=0.1)
     pl.plot(x, y, ".r", alpha=0.8)
     #pl.errorbar(x, y, yerr=yerr, fmt=".k")
