@@ -61,11 +61,11 @@ def lnprior(theta,degree,xmin,xmax):
     Example usage of polynomial smoothing prior.
     """
     # Polynomial is 0 + 1x + ... + 4x^4.
-    p = np.arange(degree)
+    p = theta
     # Smooth derivatives of 3rd degree and higher.
-    smoothing_degree = 3
+    smoothing_degree = 7
     # Integrate from 0 to 2.
-    xmin, xmax = 0, 2
+    #xmin, xmax = 0, 2
     # Do not scale result.
     gamma = 1
 
@@ -78,7 +78,7 @@ def lnlike(theta, x, y, yerr):
  
     model = np.polyval(theta,x)
     inv_sigma2 = 1.0/(yerr**2) #+ model**2*np.exp(2*lnf))
-    return -0.5*(np.sum((y-model)**2*inv_sigma2))# - np.log(inv_sigma2)))
+    return -0.5*(np.sum((y-model)**2*inv_sigma2)) #- np.log(inv_sigma2)))
 
 def lnprob(theta, degree, x, y, yerr):
     xmin = np.amin(x)
@@ -108,13 +108,13 @@ def maximum_likelihood(x,y,yerr,degree,lam_ls,output_directory):
 
 def MCMC(x,y,yerr,degree,lam_ml,output_directory):                                   
     # Set up the sampler.
-    ndim, nwalkers = degree+1, 100
+    ndim, nwalkers = degree+1, 50
     pos = [lam_ml + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(degree, x, y, yerr))
 
     # Clear and run the production chain.
     print("Running MCMC...")
-    sampler.run_mcmc(pos, 2000, rstate0=np.random.get_state())
+    sampler.run_mcmc(pos, 5000, rstate0=np.random.get_state())
     print("Done.")
     
 
@@ -142,11 +142,11 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
 
 
     fig.tight_layout(h_pad=0.0)
-    fig.savefig(path.join(output_directory, "line-time.png"))
+    fig.savefig(path.join(output_directory, "line-time.pdf"))
     pl.show()
 
     # Make the triangle plot.
-    burnin = 500
+    burnin = 3500
     samples = sampler.chain[:, burnin:, :].reshape((-1, ndim))
     
     lam_MCMC = samples[len(samples)-1]
@@ -171,22 +171,22 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
 
 
     # Plot some samples onto the data.
-    for lam in samples[np.random.randint(len(samples), size=50)]:
-        pl.plot(xl,np.polyval(lam,xl), color="k", alpha=0.1)
-    pl.plot(x, y, ".r", alpha=0.8)
-    #pl.errorbar(x, y, yerr=yerr, fmt=".k")
-       
+    fig,ax3 = pl.subplots()
+    for lam in samples[np.random.randint(len(samples), size=100)]:
+        ax3.plot(xl,np.polyval(lam,xl), color="k", alpha=0.1)
+    ax3.plot(x, y, ".r", alpha=0.8)
+    ax3.errorbar(x, y, yerr=yerr, fmt=".k")   
     #pl.tight_layout()
+    pl.savefig(path.join(output_directory, "line-mcmc_err.pdf"))
     pl.show()
-    pl.savefig(path.join(output_directory, "line-mcmc.png"))
-
+    
     # Compute the quantiles.
     samples[:, 2] = np.exp(samples[:, 2])
     lam_MCMC_best = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                              zip(*np.percentile(samples, [16, 50, 84],
                                                 axis=0)))
     fig = corner.corner(samples)
-    fig.savefig(path.join(output_directory, "line-triangle.jpg"))
+    fig.savefig(path.join(output_directory, "line-triangle.pdf"))
 
     pl.figure()
     
