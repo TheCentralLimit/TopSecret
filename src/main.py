@@ -15,7 +15,8 @@ import gw
 from density import chirp_mass_distribution
 from utils import make_sure_path_exists
 
-from chis_code import chis_code
+#from chis_code import chis_code
+from mcmc import MCMC
 
 def main(data_filename, output_directory, *features):
     # Set random seed.
@@ -71,8 +72,11 @@ def main(data_filename, output_directory, *features):
         power_law(r_fn, r_err_fn, M_c, M_c_smooth, x, x_smooth,
                   ax_pdf, ax_data)
     if ("mcmc" in features) or ("all" in features):
-        lam_mcmc = chis_code(np.log10(M_c),r_fn(np.log10(M_c)),r_err_fn(np.log10(M_c)),output_directory) # (x,y,yerr)
-        
+        MCMC(M_c, r_fn(np.log10(M_c)), r_err_fn(np.log10(M_c)), 5, 3,
+             ax_pdf, output_directory)
+
+#        lam_mcmc = chis_code(M_c, r_fn(np.log10(M_c)), r_err_fn(np.log10(M_c)),
+#                             output_directory)
 
     if ("classifier" in features) or ("all" in features):
         classifier(m_1, m_2, M_c, s, ax_pdf, ax_data, output_directory)

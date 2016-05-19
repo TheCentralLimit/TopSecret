@@ -36,9 +36,9 @@ def chis_code(x_in,y_in,yerr_in,output_directory):
     
     degree = 9 # degree of polynomial
     # least square fitting
-    lam_ls = mcmc.least_square(x,y,yerr,degree,output_directory)
-    lam_ml = mcmc.maximum_likelihood(x,y,yerr,degree,lam_ls,output_directory)
-    lam_mcmc = mcmc.MCMC(x,y,yerr,degree,lam_ml,output_directory)
+    lam_ls = mcmc.least_square(M_c, r,yerr,degree,output_directory)
+#    lam_ml = mcmc.maximum_likelihood(x,y,yerr,degree,lam_ls,output_directory)
+    lam_mcmc = mcmc.MCMC(x,y,yerr,degree,lam_ls,output_directory)
     
     return lam_mcmc
 
@@ -50,6 +50,3 @@ def check_nonzero(y_in):
 def yerr_log(y,yerr):
     yerr_return = (np.log10(y+yerr) - np.log10(y-yerr))/2.0
     return yerr_return
-
-
-
