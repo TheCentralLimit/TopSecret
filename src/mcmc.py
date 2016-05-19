@@ -63,11 +63,10 @@ def lnprior(theta,degree,xmin,xmax):
     # Polynomial is 0 + 1x + ... + 4x^4.
     p = theta
     # Smooth derivatives of 3rd degree and higher.
-    smoothing_degree = 7
-    # Integrate from 0 to 2.
-    #xmin, xmax = 0, 2
+    smoothing_degree = 3
+    # Integrate from xmin to xmax
     # Do not scale result.
-    gamma = 1
+    gamma = 3
 
     # Run the function and display the result.
     lnp = smoothing_poly_lnprior(p, smoothing_degree, xmin, xmax, gamma)
@@ -78,7 +77,7 @@ def lnlike(theta, x, y, yerr):
  
     model = np.polyval(theta,x)
     inv_sigma2 = 1.0/(yerr**2) #+ model**2*np.exp(2*lnf))
-    return -0.5*(np.sum((y-model)**2*inv_sigma2)) #- np.log(inv_sigma2)))
+    return -0.5*(np.sum((y-model)**2*inv_sigma2 - np.log(inv_sigma2)))
 
 def lnprob(theta, degree, x, y, yerr):
     xmin = np.amin(x)
@@ -131,11 +130,11 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
     axes[2].set_xlabel("step number")
     
     axes[3].plot(np.exp(sampler.chain[:, :, 3]).T, color="k", alpha=0.4)
-    axes[3].set_ylabel("$\lambda_2$")
+    axes[3].set_ylabel("$\lambda_3$")
     axes[3].set_xlabel("step number")
     
     axes[4].plot(np.exp(sampler.chain[:, :, 4]).T, color="k", alpha=0.4)
-    axes[4].set_ylabel("$\lambda_2$")
+    axes[4].set_ylabel("$\lambda_4$")
     axes[4].set_xlabel("step number")
     
     
@@ -143,6 +142,7 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
 
     fig.tight_layout(h_pad=0.0)
     fig.savefig(path.join(output_directory, "line-time.pdf"))
+    
     pl.show()
 
     # Make the triangle plot.
@@ -160,12 +160,11 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
     y_low = np.percentile(yvals,5)
     y_high = np.percentile(yvals,95)
     ax2.errorbar(x, y, yerr=yerr, fmt=".k")
-    ax2.plot(xl, yvals, 'c')
-    ax2.set_xlabel('log($M_c$)')
-    ax2.set_ylabel('log(r)')
-    #ax2.plot(xl, y_low, 'k--')
-    #ax2.plot(xl, y_high, 'k--')
-    #ax2.set_ylim(-4,4)
+    ax2.plot(xl, yvals, "c")
+    ax2.set_xlabel("log($M_c$)")
+    ax2.set_ylabel("log(r)")
+    ax2.set_yscale("log")
+    ax2.set_ylim(10**(-20), 10**(-5))
     pl.savefig(path.join(output_directory, "line-MCMC.pdf"))
     pl.show()
 
@@ -175,6 +174,10 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
     for lam in samples[np.random.randint(len(samples), size=100)]:
         ax3.plot(xl,np.polyval(lam,xl), color="k", alpha=0.1)
     ax3.plot(x, y, ".r", alpha=0.8)
+    ax3.set_yscale("log")
+    ax3.set_ylabel("log(r)")
+    ax3.set_xlabel("log($M_c$)")
+    ax3.set_ylim(10**(-20.),10**(-5.))
     ax3.errorbar(x, y, yerr=yerr, fmt=".k")   
     #pl.tight_layout()
     pl.savefig(path.join(output_directory, "line-mcmc_err.pdf"))
@@ -187,7 +190,7 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
                                                 axis=0)))
     fig = corner.corner(samples)
     fig.savefig(path.join(output_directory, "line-triangle.pdf"))
-
+    
     pl.figure()
     
     print("MCMC best fit:\n")
