@@ -56,12 +56,12 @@ def smoothing_poly_lnprior(poly, degree, xmin, xmax, gamma=1):
 
     return lnp
 
-def lnprior(theta,degree):
+def lnprior(theta,degree,xmin,xmax):
     """
     Example usage of polynomial smoothing prior.
     """
     # Polynomial is 0 + 1x + ... + 4x^4.
-    p = np.arange(2)
+    p = np.arange(degree)
     # Smooth derivatives of 3rd degree and higher.
     smoothing_degree = 3
     # Integrate from 0 to 2.
@@ -70,18 +70,20 @@ def lnprior(theta,degree):
     gamma = 1
 
     # Run the function and display the result.
-    lnp = np.log(smoothing_poly_lnprior(p, smoothing_degree, xmin, xmax, gamma))
+    lnp = smoothing_poly_lnprior(p, smoothing_degree, xmin, xmax, gamma)
 
     return lnp 
 
 def lnlike(theta, x, y, yerr):
-    lam_ml = list(reversed(theta))
-    model = np.polyval(lam_ml,x)
+ 
+    model = np.polyval(theta,x)
     inv_sigma2 = 1.0/(yerr**2) #+ model**2*np.exp(2*lnf))
-    return -0.5*(np.sum((y-model)**2*inv_sigma2 - np.log(inv_sigma2)))
+    return -0.5*(np.sum((y-model)**2*inv_sigma2))# - np.log(inv_sigma2)))
 
 def lnprob(theta, degree, x, y, yerr):
-    lp = lnprior(theta,degree)
+    xmin = np.amin(x)
+    xmax = np.amax(x)
+    lp = lnprior(theta,degree,xmin,xmax)
     if not np.isfinite(lp):
         return -np.inf
     return lp + lnlike(theta, x, y, yerr)
@@ -107,7 +109,7 @@ def maximum_likelihood(x,y,yerr,degree,lam_ls,output_directory):
 def MCMC(x,y,yerr,degree,lam_ml,output_directory):                                   
     # Set up the sampler.
     ndim, nwalkers = degree+1, 100
-    pos = [lam_ml + 1e-15*np.random.randn(ndim) for i in range(nwalkers)]
+    pos = [lam_ml + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(degree, x, y, yerr))
 
     # Clear and run the production chain.
@@ -144,18 +146,17 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
     pl.show()
 
     # Make the triangle plot.
-    burnin = 50
+    burnin = 500
     samples = sampler.chain[:, burnin:, :].reshape((-1, ndim))
     
     lam_MCMC = samples[len(samples)-1]
     
     # Add a plot of the result. (note the fit to f is a fit to error)
     fig,ax2 = pl.subplots()
-    xl = np.linspace(-0.1, 2,1000)
-    lam_MCMC_for_plot = list(reversed(lam_MCMC))
+    xl = np.linspace(-0.1, 1.5,1000)
     y_high = np.zeros(len(xl))
     y_low = np.zeros(len(xl))
-    yvals = np.polyval(lam_MCMC_for_plot,xl)
+    yvals = np.polyval(lam_MCMC,xl)
     y_low = np.percentile(yvals,5)
     y_high = np.percentile(yvals,95)
     ax2.errorbar(x, y, yerr=yerr, fmt=".k")
@@ -171,10 +172,9 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
 
     # Plot some samples onto the data.
     for lam in samples[np.random.randint(len(samples), size=10)]:
-        lam_for_plot = list(reversed(lam))
-        pl.plot(xl,np.polyval(lam_for_plot,xl), color="k", alpha=0.1)
-    #pl.plot(x, y, color="r", lw=2, alpha=0.8)
-    pl.errorbar(x, y, yerr=yerr, fmt=".k")
+        pl.plot(xl,np.polyval(lam,xl), color="k", alpha=0.1)
+    pl.plot(x, y, ".r", alpha=0.8)
+    #pl.errorbar(x, y, yerr=yerr, fmt=".k")
        
     #pl.tight_layout()
     pl.show()

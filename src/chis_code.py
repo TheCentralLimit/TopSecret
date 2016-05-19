@@ -29,13 +29,15 @@ def chis_code(x_in,y_in,yerr_in,output_directory):
     x = x_in[index>0]
     y_not_log = y_in[index>0]
     y = np.log10(y_not_log)
+    #y = y_not_log
     yerr_not_log = yerr_in[index>0] 
-    yerr = yerr_log(y_not_log,yerr_not_log)
-
+    #yerr = yerr_log(y_not_log,yerr_not_log)
+    yerr = np.log10(yerr_not_log)
+    #yerr = yerr_not_log
     
     print(len(yerr))
     
-    degree = 4 # degree of polynomial
+    degree = 7 # degree of polynomial
     # least square fitting
     lam_ls = mcmc.least_square(x,y,yerr,degree,output_directory)
     lam_ml = mcmc.maximum_likelihood(x,y,yerr,degree,lam_ls,output_directory)
@@ -50,6 +52,9 @@ def check_nonzero(y_in):
 
 def yerr_log(y,yerr):
     yerr_return = (np.log10(y+yerr) - np.log10(y-yerr))
+    pl.plot(y,yerr_return)
+    pl.show
+    
     return yerr_return
 
 
