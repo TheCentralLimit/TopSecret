@@ -139,11 +139,34 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
     axes[4].set_ylabel("$\lambda_4$")
     axes[4].set_xlabel("step number")
     
+    fig.tight_layout(h_pad=0.0)
+    fig.savefig(path.join(output_directory, "line-time-1.pdf"))
     
-
+    pl.show()
+    
+    fig, axes = pl.subplots(5, 1, sharex=True, figsize=(8, 9))
+    axes[0].plot(np.exp(sampler.chain[:, :, 5]).T, color="k", alpha=0.4)
+    axes[0].set_ylabel("$\lambda_5$")
+    axes[0].set_xlabel("step number")
+    
+    axes[1].plot(np.exp(sampler.chain[:, :, 6]).T, color="k", alpha=0.4)
+    axes[1].set_ylabel("$\lambda_6$")
+    axes[1].set_xlabel("step number")
+   
+    axes[2].plot(np.exp(sampler.chain[:, :, 7]).T, color="k", alpha=0.4)
+    axes[2].set_ylabel("$\lambda_7$")
+    axes[2].set_xlabel("step number")
+    
+    axes[3].plot(np.exp(sampler.chain[:, :, 8]).T, color="k", alpha=0.4)
+    axes[3].set_ylabel("$\lambda_8$")
+    axes[3].set_xlabel("step number")
+    
+    axes[4].plot(np.exp(sampler.chain[:, :, 9]).T, color="k", alpha=0.4)
+    axes[4].set_ylabel("$\lambda_9$")
+    axes[4].set_xlabel("step number")
 
     fig.tight_layout(h_pad=0.0)
-    fig.savefig(path.join(output_directory, "line-time.pdf"))
+    fig.savefig(path.join(output_directory, "line-time-2.pdf"))
     
     pl.show()
 
@@ -163,23 +186,23 @@ def MCMC(x,y,yerr,degree,lam_ml,output_directory):
     y_high = np.percentile(yvals,95)
     ax2.errorbar(x, y, yerr=yerr, fmt=".k")
     ax2.plot(xl, yvals, "c")
-    ax2.set_xlabel("log($M_c$)")
-    ax2.set_ylabel("log(r)")
+    ax2.set_xlabel("$\log(\mathcal{M}_c)$")
+    ax2.set_ylabel("$r(\mathcal{M}_c)$")
     ax2.set_yscale("log")
-    ax2.set_ylim(10**(-20), 10**(-5))
+    ax2.set_ylim(10**(-10), 10**(-5))
     pl.savefig(path.join(output_directory, "line-MCMC.pdf"))
     pl.show()
 
 
     # Plot some samples onto the data.
     fig,ax3 = pl.subplots()
-    for lam in samples[np.random.randint(len(samples), size=100)]:
+    for lam in samples[np.random.randint(len(samples), size=200)]:
         ax3.plot(xl,np.polyval(lam,xl), color="k", alpha=0.1)
     ax3.plot(x, y, ".r", alpha=0.8)
     ax3.set_yscale("log")
-    ax3.set_ylabel("log(r)")
-    ax3.set_xlabel("log($M_c$)")
-    ax3.set_ylim(10**(-20.),10**(-5.))
+    ax3.set_xlabel("$\log(\mathcal{M}_c)$")
+    ax3.set_ylabel("$r(\mathcal{M}_c)$")
+    ax3.set_ylim(10**(-10.),10**(-5.))
     ax3.errorbar(x, y, yerr=yerr, fmt=".k")   
     #pl.tight_layout()
     pl.savefig(path.join(output_directory, "line-mcmc_err.pdf"))
